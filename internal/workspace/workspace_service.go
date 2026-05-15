@@ -56,3 +56,31 @@ func (s *WorkspaceService) CreateWorkspace(ctx context.Context, payload *Workspa
 func (s *WorkspaceService) ListWorkspaces(ctx context.Context, userID primitive.ObjectID) ([]*Workspace, error) {
 	return s.workrepo.ListWorkspaces(ctx, userID)
 }
+
+func (s *WorkspaceService) InviteUser(
+	ctx context.Context,
+	invitedBy primitive.ObjectID,
+	invitedUserID primitive.ObjectID,
+	workspaceID primitive.ObjectID,
+) (*WorkspaceInvite, error) {
+	now := time.Now()
+	inviteID := primitive.NewObjectID()
+	invite := &WorkspaceInvite{
+		ID: inviteID,
+
+		WorkspaceID: workspaceID,
+
+		InvitedBy: invitedBy,
+
+		InvitedUserID: invitedUserID,
+
+		Status: "pending",
+
+		CreatedAt: now,
+	}
+	created, err := s.workrepo.InviteUser(invite)
+	if err != nil {
+		return nil, err
+	}
+	return created, nil
+}

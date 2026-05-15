@@ -12,12 +12,14 @@ import (
 type WorkspaceRepo struct {
 	collection  *mongo.Collection
 	memberships *mongo.Collection
+	invite      *mongo.Collection
 }
 
 func NewWorkspaceRepo(db *mongo.Database) *WorkspaceRepo {
 	return &WorkspaceRepo{
 		collection:  db.Collection("workspaces"),
 		memberships: db.Collection("workspace_members"),
+		invite:      db.Collection("workspace_invites"),
 	}
 }
 
@@ -94,4 +96,30 @@ func (r *WorkspaceRepo) ListWorkspaces(ctx context.Context, userID primitive.Obj
 	}
 
 	return workspaces, nil
+}
+
+func (r *WorkspaceRepo) GetWorkspaceByID(ctx context.Context, workspaceID primitive.ObjectID) (*Workspace, error) {
+	filter := bson.M{"_id": workspaceID}
+	var workspace Workspace
+	err := r.collection.FindOne(ctx, filter).Decode(&workspace)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &workspace, nil
+
+}
+
+func (r *WorkspaceRepo) InviteUser(member *WorkspaceInvite) (*WorkspaceInvite, error) {
+	res, err := r.invite.InsertOne(context.TODO(), member)
+	if err != nil {
+		return nil, err
+	}
+	insertedID, ok := res.InsertedID.(primitive.ObjectID)
+	if ok {
+		member.ID = insertedID
+	}
+	return member, nil
 }

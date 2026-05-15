@@ -29,7 +29,23 @@ type WorkspaceMember struct {
 	JoinedAt time.Time `bson:"joined_at" json:"joined_at"`
 }
 
+type WorkspaceInvite struct {
+	ID primitive.ObjectID `bson:"_id,omitempty"`
+
+	WorkspaceID primitive.ObjectID `bson:"workspace_id"`
+	InvitedBy   primitive.ObjectID `bson:"invited_by"`
+
+	InvitedUserID primitive.ObjectID `bson:"invited_user_id"`
+
+	Status string `bson:"status"`
+
+	CreatedAt time.Time `bson:"created_at"`
+}
+
 type WorkspacePayload struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+type InviteUserPayload struct {
+	InvitedUserID string `json:"invited_user_id"`
 }
