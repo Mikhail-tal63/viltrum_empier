@@ -101,3 +101,23 @@ func (h *WorkspaceHandler) InviteUser(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, http.StatusInternalServerError, err)
 	}
 }
+
+func (h *WorkspaceHandler) GetInviteByUserID(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	invites, err := h.WorkspaceService.GetInviteByUserID(r.Context(), userID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := json.WriteJSON(w, http.StatusOK, invites); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+}

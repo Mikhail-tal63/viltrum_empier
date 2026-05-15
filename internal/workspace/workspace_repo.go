@@ -123,3 +123,22 @@ func (r *WorkspaceRepo) InviteUser(member *WorkspaceInvite) (*WorkspaceInvite, e
 	}
 	return member, nil
 }
+
+func (r *WorkspaceRepo) GetInviteByUserID(ctx context.Context, UserID primitive.ObjectID) ([]*WorkspaceInvite, error) {
+	filter := bson.M{
+		"invited_user_id": UserID,
+		"status":          "pending",
+	}
+
+	cursor, err := r.invite.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	invites := []*WorkspaceInvite{}
+	if err := cursor.All(ctx, &invites); err != nil {
+		return nil, err
+	}
+	return invites, nil
+}

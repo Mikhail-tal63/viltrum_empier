@@ -84,3 +84,7 @@ func (s *WorkspaceService) InviteUser(
 	}
 	return created, nil
 }
+
+func (s *WorkspaceService) GetInviteByUserID(ctx context.Context, UserID primitive.ObjectID) ([]*WorkspaceInvite, error) {
+	return s.workrepo.GetInviteByUserID(ctx, UserID)
+}
