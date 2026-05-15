@@ -9,12 +9,14 @@ import (
 )
 
 type WorkspaceRepo struct {
-	collection *mongo.Collection
+	collection  *mongo.Collection
+	memberships *mongo.Collection
 }
 
 func NewWorkspaceRepo(db *mongo.Database) *WorkspaceRepo {
 	return &WorkspaceRepo{
-		collection: db.Collection("workspaces"),
+		collection:  db.Collection("workspaces"),
+		memberships: db.Collection("workspace_members"),
 	}
 }
 
@@ -34,7 +36,7 @@ func (r *WorkspaceRepo) CreateWorkspace(workspace *Workspace) (*Workspace, error
 
 func (r *WorkspaceRepo) CreateWorkspaceMember(member *WorkspaceMember) (*WorkspaceMember, error) {
 
-	res, err := r.collection.InsertOne(context.TODO(), member)
+	res, err := r.memberships.InsertOne(context.TODO(), member)
 	if err != nil {
 		return nil, err
 	}

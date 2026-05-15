@@ -25,8 +25,8 @@ func (s *WorkspaceService) CreateWorkspace(ctx context.Context, payload *Workspa
 
 	workspace := &Workspace{
 		ID:          workspaceID,
-		Name:        payload.name,
-		Description: payload.description,
+		Name:        payload.Name,
+		Description: payload.Description,
 		OwnerID:     userID,
 		CreatedAt:   now,
 		UpdatedAt:   now,
