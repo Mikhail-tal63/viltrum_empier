@@ -28,3 +28,8 @@ type WorkspaceMember struct {
 
 	JoinedAt time.Time `bson:"joined_at" json:"joined_at"`
 }
+
+type WorkspacePayload struct {
+	name        string
+	description string
+}
