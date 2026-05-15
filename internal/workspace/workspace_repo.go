@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -46,4 +47,51 @@ func (r *WorkspaceRepo) CreateWorkspaceMember(member *WorkspaceMember) (*Workspa
 	}
 	return member, nil
 
+}
+
+func (r *WorkspaceRepo) ListWorkspaces(ctx context.Context, userID primitive.ObjectID) ([]*Workspace, error) {
+
+	filter := bson.M{
+		"user_id": userID,
+	}
+
+	cursor, err := r.memberships.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	memberships := []*WorkspaceMember{}
+	if err := cursor.All(ctx, &memberships); err != nil {
+		return nil, err
+	}
+
+	if len(memberships) == 0 {
+		return []*Workspace{}, nil
+	}
+
+	workspaceIDs := make([]primitive.ObjectID, 0, len(memberships))
+
+	for _, member := range memberships {
+		workspaceIDs = append(workspaceIDs, member.WorkspaceID)
+	}
+
+	workspaceFilter := bson.M{
+		"_id": bson.M{
+			"$in": workspaceIDs,
+		},
+	}
+
+	workspaceCursor, err := r.collection.Find(ctx, workspaceFilter)
+	if err != nil {
+		return nil, err
+	}
+	defer workspaceCursor.Close(ctx)
+
+	workspaces := []*Workspace{}
+	if err := workspaceCursor.All(ctx, &workspaces); err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
 }

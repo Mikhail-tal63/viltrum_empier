@@ -52,3 +52,7 @@ func (s *WorkspaceService) CreateWorkspace(ctx context.Context, payload *Workspa
 
 	return createdWorkspace, nil
 }
+
+func (s *WorkspaceService) ListWorkspaces(ctx context.Context, userID primitive.ObjectID) ([]*Workspace, error) {
+	return s.workrepo.ListWorkspaces(ctx, userID)
+}

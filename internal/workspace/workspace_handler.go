@@ -21,6 +21,7 @@ func NewWorkspaceHandler(WorkspaceService *WorkspaceService) *WorkspaceHandler {
 
 func (h *WorkspaceHandler) WorkspaceRouter(router *mux.Router) {
 	router.HandleFunc("/workspaces", h.CreateWorkspace).Methods("POST")
+	router.HandleFunc("/workspaces", h.ListWorkspaces).Methods("GET")
 }
 
 func (h *WorkspaceHandler) CreateWorkspace(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +41,23 @@ func (h *WorkspaceHandler) CreateWorkspace(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if err := json.WriteJSON(w, http.StatusCreated, workspace); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
+func (h *WorkspaceHandler) ListWorkspaces(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	Workspace, err := h.WorkspaceService.ListWorkspaces(r.Context(), userID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := json.WriteJSON(w, http.StatusOK, Workspace); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
