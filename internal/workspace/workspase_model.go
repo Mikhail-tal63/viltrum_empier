@@ -30,6 +30,6 @@ type WorkspaceMember struct {
 }
 
 type WorkspacePayload struct {
-	name        string
-	description string
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/auth"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/workspace"
 	"github.com/Mikhail-tal63/viltrum_empier/middleware"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,7 +30,19 @@ func (s *APIServer) Run() error {
 	userRepo := auth.NewAuthRepository(s.db)
 	userService := auth.NewAuthService(userRepo)
 	userHandler := auth.NewAuthHandler(userService)
-	userHandler.AuthRouter(apiRouter)
+	userHandler.AuthRouter(apiRouter.PathPrefix("/auth").Subrouter())
+
+	/*protected router*************************************************/
+
+	protectedRouter := apiRouter.PathPrefix("").Subrouter()
+	protectedRouter.Use(middleware.AuthMiddleware)
+
+	/*workspace*****************************/
+
+	workspacerepo := workspace.NewWorkspaceRepo(s.db)
+	workspaceService := workspace.NewWorkspaceService(workspacerepo)
+	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService)
+	workspaceHandler.WorkspaceRouter(protectedRouter)
 
 	log.Println("listening on ", s.addr)
 

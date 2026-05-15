@@ -24,9 +24,12 @@ func NewAuthService(repo *AuthRepository) *AuthService {
 func (s *AuthService) CreateUser(user *CreateUserPayload) (*AuthResponse, error) {
 	now := time.Now()
 
-	_, err := s.repo.GetUserByEmail(user.Email)
-	if err == nil {
-		return nil, fmt.Errorf("user with %s is already existes", user.Email)
+	existing, err := s.repo.GetUserByEmail(user.Email)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("user with %s already exists", user.Email)
 	}
 	hash, err := password.HashPassword(user.Password)
 	if err != nil {
