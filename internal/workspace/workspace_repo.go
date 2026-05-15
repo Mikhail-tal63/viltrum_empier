@@ -31,3 +31,17 @@ func (r *WorkspaceRepo) CreateWorkspace(workspace *Workspace) (*Workspace, error
 	workspace.ID = insertedID
 	return workspace, nil
 }
+
+func (r *WorkspaceRepo) CreateWorkspaceMember(member *WorkspaceMember) (*WorkspaceMember, error) {
+
+	res, err := r.collection.InsertOne(context.TODO(), member)
+	if err != nil {
+		return nil, err
+	}
+	insertedID, ok := res.InsertedID.(primitive.ObjectID)
+	if ok {
+		member.ID = insertedID
+	}
+	return member, nil
+
+}

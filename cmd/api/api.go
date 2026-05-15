@@ -29,7 +29,7 @@ func (s *APIServer) Run() error {
 	userRepo := auth.NewAuthRepository(s.db)
 	userService := auth.NewAuthService(userRepo)
 	userHandler := auth.NewAuthHandler(userService)
-	userHandler.AuthRouter(apiRouter)
+	userHandler.AuthRouter(apiRouter.PathPrefix("/auth").Subrouter())
 
 	log.Println("listening on ", s.addr)
 
