@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Mikhail-tal63/viltrum_empier/utils/json"
@@ -20,6 +21,27 @@ func NewAuthHandler(service *AuthService) *AuthHandler {
 func (h *AuthHandler) AuthRouter(router *mux.Router) {
 	router.HandleFunc("/register", h.CreateUser).Methods("POST")
 	router.HandleFunc("/login", h.Login).Methods("POST")
+}
+
+func (h *AuthHandler) ProtectedRouter(router *mux.Router) {
+	router.HandleFunc("/users/{username}", h.GetUserByUsername).Methods("GET")
+}
+
+func (h *AuthHandler) GetUserByUsername(w http.ResponseWriter, r *http.Request) {
+	username := mux.Vars(r)["username"]
+	if username == "" {
+		json.WriteError(w, http.StatusBadRequest, fmt.Errorf("username is required"))
+		return
+	}
+	user, err := h.service.GetUserByUsername(r.Context(), username)
+	if err != nil {
+		json.WriteError(w, http.StatusNotFound, err)
+		return
+	}
+	if err := json.WriteJSON(w, http.StatusOK, user); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
 }
 
 func (h *AuthHandler) CreateUser(w http.ResponseWriter, r *http.Request) {

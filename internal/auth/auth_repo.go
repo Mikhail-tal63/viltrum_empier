@@ -46,3 +46,16 @@ func (r *AuthRepository) GetUserByEmail(email string) (*User, error) {
 	}
 	return &user, nil
 }
+
+func (r *AuthRepository) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+	var user User
+	filter := bson.M{"username": username}
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}

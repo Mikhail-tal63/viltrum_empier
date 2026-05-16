@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"time"
 
@@ -10,6 +13,8 @@ import (
 	"github.com/Mikhail-tal63/viltrum_empier/utils/password"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+var usernameRe = regexp.MustCompile(`^[a-z0-9_]{3,20}$`)
 
 type AuthService struct {
 	repo *AuthRepository
@@ -24,6 +29,15 @@ func NewAuthService(repo *AuthRepository) *AuthService {
 func (s *AuthService) CreateUser(user *CreateUserPayload) (*AuthResponse, error) {
 	now := time.Now()
 
+	username := strings.ToLower(strings.TrimSpace(user.Username))
+	if !usernameRe.MatchString(username) {
+		return nil, fmt.Errorf("username must be 3-20 chars, lowercase letters, numbers or underscore")
+	}
+	name := strings.TrimSpace(user.Name)
+	if name == "" {
+		name = username
+	}
+
 	existing, err := s.repo.GetUserByEmail(user.Email)
 	if err != nil {
 		return nil, err
@@ -31,6 +45,15 @@ func (s *AuthService) CreateUser(user *CreateUserPayload) (*AuthResponse, error)
 	if existing != nil {
 		return nil, fmt.Errorf("user with %s already exists", user.Email)
 	}
+
+	existingByUsername, err := s.repo.GetUserByUsername(context.TODO(), username)
+	if err != nil {
+		return nil, err
+	}
+	if existingByUsername != nil {
+		return nil, fmt.Errorf("username %q is already taken", username)
+	}
+
 	hash, err := password.HashPassword(user.Password)
 	if err != nil {
 		return nil, err
@@ -38,7 +61,8 @@ func (s *AuthService) CreateUser(user *CreateUserPayload) (*AuthResponse, error)
 
 	newUser := &User{
 		ID:           primitive.NewObjectID(),
-		Username:     user.Username,
+		Name:         name,
+		Username:     username,
 		Email:        user.Email,
 		PasswordHash: hash,
 		Avatar:       "",
@@ -95,4 +119,15 @@ func (s *AuthService) Login(email, HashPassword string) (*AuthResponse, error) {
 		User:         *user,
 	}, nil
 
+}
+
+func (s *AuthService) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+	user, err := s.repo.GetUserByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	return user, nil
 }

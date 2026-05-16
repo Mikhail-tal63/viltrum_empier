@@ -23,7 +23,9 @@ func NewWorkspaceHandler(WorkspaceService *WorkspaceService) *WorkspaceHandler {
 func (h *WorkspaceHandler) WorkspaceRouter(router *mux.Router) {
 	router.HandleFunc("/workspaces", h.CreateWorkspace).Methods("POST")
 	router.HandleFunc("/workspaces", h.ListWorkspaces).Methods("GET")
+	router.HandleFunc("/workspaces/invites", h.GetInviteByUserID).Methods("GET")
 	router.HandleFunc("/workspaces/{workspace_id}/invite", h.InviteUser).Methods("POST")
+	router.HandleFunc("/workspaces/{workspace_id}/invite/{invite_id}/accept", h.AcceptInvite).Methods("POST")
 }
 
 func (h *WorkspaceHandler) CreateWorkspace(w http.ResponseWriter, r *http.Request) {

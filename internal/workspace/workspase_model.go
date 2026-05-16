@@ -30,16 +30,16 @@ type WorkspaceMember struct {
 }
 
 type WorkspaceInvite struct {
-	ID primitive.ObjectID `bson:"_id,omitempty"`
+	ID primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 
-	WorkspaceID primitive.ObjectID `bson:"workspace_id"`
-	InvitedBy   primitive.ObjectID `bson:"invited_by"`
+	WorkspaceID primitive.ObjectID `bson:"workspace_id" json:"workspace_id"`
+	InvitedBy   primitive.ObjectID `bson:"invited_by" json:"invited_by"`
 
-	InvitedUserID primitive.ObjectID `bson:"invited_user_id"`
+	InvitedUserID primitive.ObjectID `bson:"invited_user_id" json:"invited_user_id"`
 
-	Status string `bson:"status"`
+	Status string `bson:"status" json:"status"`
 
-	CreatedAt time.Time `bson:"created_at"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 }
 
 type WorkspacePayload struct {

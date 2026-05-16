@@ -37,6 +37,8 @@ func (s *APIServer) Run() error {
 	protectedRouter := apiRouter.PathPrefix("").Subrouter()
 	protectedRouter.Use(middleware.AuthMiddleware)
 
+	userHandler.ProtectedRouter(protectedRouter)
+
 	/*workspace*****************************/
 
 	workspacerepo := workspace.NewWorkspaceRepo(s.db)
