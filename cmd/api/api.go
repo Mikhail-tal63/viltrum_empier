@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/auth"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/workspace"
 	"github.com/Mikhail-tal63/viltrum_empier/middleware"
 	"github.com/gorilla/mux"
@@ -45,6 +46,12 @@ func (s *APIServer) Run() error {
 	workspaceService := workspace.NewWorkspaceService(workspacerepo)
 	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService, userService)
 	workspaceHandler.WorkspaceRouter(protectedRouter)
+
+	/*boards & colmuns *******************************/
+	boardRepo := board.NewBoardRepository(s.db)
+	boardService := board.NewBoardService(boardRepo)
+	boardHandler := board.NewBoardHandler(boardService)
+	boardHandler.BoardRouter(protectedRouter)
 
 	log.Println("listening on ", s.addr)
 

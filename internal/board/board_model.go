@@ -18,7 +18,6 @@ type Board struct {
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
-
 type Column struct {
 	ID primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 
@@ -28,5 +27,15 @@ type Column struct {
 
 	Position int `bson:"position" json:"position"`
 
+	Color string `bson:"color,omitempty" json:"color,omitempty"`
+
+	IsArchived bool `bson:"is_archived" json:"is_archived"`
+
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+
+	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+}
+
+type CreateBoardPayload struct {
+	Name string `json:"name"`
 }
