@@ -35,7 +35,3 @@ type Column struct {
 
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
-
-type CreateBoardPayload struct {
-	Name string `json:"name"`
-}

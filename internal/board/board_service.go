@@ -26,14 +26,19 @@ func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayl
 		ID:          boardID,
 		WorkspaceID: workspaceId,
 		Name:        payload.Name,
-
-		CreatedAt: now,
-		UpdatedAt: now,
+		Position:    0,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
-	createdBoard, err := s.repo.CreateBoard(board)
+	createdBoard, err := s.repo.CreateBoard(ctx, board)
 	if err != nil {
 		return nil, err
 	}
 	return createdBoard, nil
+}
+
+func (s *BoardService) GetWorkspaceBoards(ctx context.Context, workspaceID primitive.ObjectID) ([]*Board, error) {
+	return s.repo.GetWorkspaceBoards(ctx, workspaceID)
+
 }
