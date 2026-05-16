@@ -88,3 +88,25 @@ func (s *WorkspaceService) InviteUser(
 func (s *WorkspaceService) GetInviteByUserID(ctx context.Context, UserID primitive.ObjectID) ([]*WorkspaceInvite, error) {
 	return s.workrepo.GetInviteByUserID(ctx, UserID)
 }
+
+func (s *WorkspaceService) AcceptInvite(ctx context.Context, workspaceID, userID, inviteID primitive.ObjectID) (*WorkspaceMember, error) {
+	err := s.workrepo.AcceptInvite(ctx, inviteID)
+	if err != nil {
+		return nil, err
+	}
+
+	NewMember := &WorkspaceMember{
+		ID:          primitive.NewObjectID(),
+		WorkspaceID: workspaceID,
+		UserID:      userID,
+		Role:        "member",
+		JoinedAt:    time.Now(),
+	}
+	_, err = s.workrepo.CreateWorkspaceMember(NewMember)
+
+	if err != nil {
+		return nil, err
+	}
+	return NewMember, nil
+
+}

@@ -142,3 +142,12 @@ func (r *WorkspaceRepo) GetInviteByUserID(ctx context.Context, UserID primitive.
 	}
 	return invites, nil
 }
+
+func (r *WorkspaceRepo) AcceptInvite(ctx context.Context, inviteID primitive.ObjectID) error {
+	filter := bson.M{"_id": inviteID, "status": "pending"}
+	update := bson.M{"$set": bson.M{"status": "accepted"}}
+
+	_, err := r.invite.UpdateOne(ctx, filter, update)
+	return err
+
+}

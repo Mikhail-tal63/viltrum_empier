@@ -121,3 +121,30 @@ func (h *WorkspaceHandler) GetInviteByUserID(w http.ResponseWriter, r *http.Requ
 	}
 
 }
+
+func (h *WorkspaceHandler) AcceptInvite(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	inviteID, err := primitive.ObjectIDFromHex(mux.Vars(r)["invite_id"])
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	Workspace, err := primitive.ObjectIDFromHex(mux.Vars(r)["workspace_id"])
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	invite, err := h.WorkspaceService.AcceptInvite(r.Context(), Workspace, userID, inviteID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := json.WriteJSON(w, http.StatusOK, invite); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
