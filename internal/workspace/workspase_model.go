@@ -47,5 +47,5 @@ type WorkspacePayload struct {
 	Description string `json:"description"`
 }
 type InviteUserPayload struct {
-	InvitedUserID string `json:"invited_user_id"`
+	Username string `json:"username"`
 }

@@ -1,8 +1,11 @@
 package workspace
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/Mikhail-tal63/viltrum_empier/internal/auth"
 	"github.com/Mikhail-tal63/viltrum_empier/middleware"
 	"github.com/Mikhail-tal63/viltrum_empier/utils/json"
 	"github.com/gorilla/mux"
@@ -11,11 +14,13 @@ import (
 
 type WorkspaceHandler struct {
 	WorkspaceService *WorkspaceService
+	AuthService      *auth.AuthService
 }
 
-func NewWorkspaceHandler(WorkspaceService *WorkspaceService) *WorkspaceHandler {
+func NewWorkspaceHandler(WorkspaceService *WorkspaceService, AuthService *auth.AuthService) *WorkspaceHandler {
 	return &WorkspaceHandler{
 		WorkspaceService: WorkspaceService,
+		AuthService:      AuthService,
 	}
 
 }
@@ -74,9 +79,14 @@ func (h *WorkspaceHandler) InviteUser(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	invitedUserID, err := primitive.ObjectIDFromHex(payload.InvitedUserID)
+	username := strings.ToLower(strings.TrimSpace(payload.Username))
+	if username == "" {
+		json.WriteError(w, http.StatusBadRequest, fmt.Errorf("username is required"))
+		return
+	}
+	invitedUser, err := h.AuthService.GetUserByUsername(r.Context(), username)
 	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err)
+		json.WriteError(w, http.StatusNotFound, err)
 		return
 	}
 	userID, err := middleware.GetUserID(r.Context())
@@ -89,10 +99,14 @@ func (h *WorkspaceHandler) InviteUser(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
+	if invitedUser.ID == userID {
+		json.WriteError(w, http.StatusBadRequest, fmt.Errorf("you can't invite yourself"))
+		return
+	}
 	invite, err := h.WorkspaceService.InviteUser(
 		r.Context(),
 		userID,
-		invitedUserID,
+		invitedUser.ID,
 		workspaceID,
 	)
 	if err != nil {

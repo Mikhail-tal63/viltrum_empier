@@ -43,7 +43,7 @@ func (s *APIServer) Run() error {
 
 	workspacerepo := workspace.NewWorkspaceRepo(s.db)
 	workspaceService := workspace.NewWorkspaceService(workspacerepo)
-	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService)
+	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService, userService)
 	workspaceHandler.WorkspaceRouter(protectedRouter)
 
 	log.Println("listening on ", s.addr)
