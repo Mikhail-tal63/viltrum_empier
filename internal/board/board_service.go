@@ -42,3 +42,28 @@ func (s *BoardService) GetWorkspaceBoards(ctx context.Context, workspaceID primi
 	return s.repo.GetWorkspaceBoards(ctx, workspaceID)
 
 }
+
+/*colmuns ****************/
+
+func (s *BoardService) CreateColmun(ctx context.Context, boardID primitive.ObjectID, payload *ColumnPayload) (*Column, error) {
+	now := time.Now()
+	colmunID := primitive.NewObjectID()
+
+	colmun := &Column{
+		ID:         colmunID,
+		BoardID:    boardID,
+		Name:       payload.Name,
+		Position:   0,
+		Color:      "",
+		IsArchived: false,
+		CreatedAt:  now,
+		UpdatedAt:  now,
+	}
+
+	colmun, err := s.repo.CreateColmun(ctx, colmun)
+	if err != nil {
+		return nil, err
+	}
+	return colmun, nil
+
+}

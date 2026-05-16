@@ -10,11 +10,13 @@ import (
 
 type BoardRepository struct {
 	collection *mongo.Collection
+	column     *mongo.Collection
 }
 
 func NewBoardRepository(db *mongo.Database) *BoardRepository {
 	return &BoardRepository{
 		collection: db.Collection("boards"),
+		column:     db.Collection("columns"),
 	}
 }
 
@@ -39,4 +41,14 @@ func (r *BoardRepository) GetWorkspaceBoards(ctx context.Context, workspaceID pr
 		return nil, err
 	}
 	return boards, nil
+}
+
+/*culmuns ****/
+
+func (r *BoardRepository) CreateColmun(ctx context.Context, colmun *Column) (*Column, error) {
+	_, err := r.collection.InsertOne(ctx, colmun)
+	if err != nil {
+		return nil, err
+	}
+	return colmun, nil
 }
