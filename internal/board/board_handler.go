@@ -22,6 +22,8 @@ func (h *BoardHandler) BoardRouter(router *mux.Router) {
 	router.HandleFunc("/workspaces/{workspace_id}/boards", h.CreateBoard).Methods("POST")
 	router.HandleFunc("/workspaces/{workspace_id}/boards", h.GetWorkspaceBoards).Methods("GET")
 	router.HandleFunc("/boards/{board_id}/colmuns", h.CreateColmun).Methods("POST")
+	router.HandleFunc("/boards/{board_id}/columns", h.GetBoarderColmuns).Methods("GET")
+
 }
 
 func (h *BoardHandler) CreateBoard(w http.ResponseWriter, r *http.Request) {
@@ -88,4 +90,21 @@ func (h *BoardHandler) CreateColmun(w http.ResponseWriter, r *http.Request) {
 	if err := json.WriteJSON(w, http.StatusCreated, colmun); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 	}
+}
+
+func (h *BoardHandler) GetBoarderColmuns(w http.ResponseWriter, r *http.Request) {
+	boardID, err := primitive.ObjectIDFromHex(mux.Vars(r)["board_id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	colmuns, err := h.service.GetBoarderColumns(r.Context(), boardID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+	}
+	if err := json.WriteJSON(w, http.StatusOK, colmuns); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+	}
+
 }

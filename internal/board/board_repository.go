@@ -46,9 +46,42 @@ func (r *BoardRepository) GetWorkspaceBoards(ctx context.Context, workspaceID pr
 /*culmuns ****/
 
 func (r *BoardRepository) CreateColmun(ctx context.Context, colmun *Column) (*Column, error) {
-	_, err := r.collection.InsertOne(ctx, colmun)
+	_, err := r.column.InsertOne(ctx, colmun)
 	if err != nil {
 		return nil, err
 	}
 	return colmun, nil
+}
+
+func (r *BoardRepository) GetBoardColumns(ctx context.Context, boardID primitive.ObjectID) ([]*Column, error) {
+	filter := bson.M{"board_id": boardID}
+	cursor, err := r.column.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	columns := []*Column{}
+	if err := cursor.All(ctx, &columns); err != nil {
+		return nil, err
+	}
+	return columns, nil
+}
+
+func (r *BoardRepository) CountBoardColumns(
+	ctx context.Context,
+	boardID primitive.ObjectID,
+) (int64, error) {
+
+	filter := bson.M{
+		"board_id":    boardID,
+		"is_archived": false,
+	}
+
+	count, err := r.column.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

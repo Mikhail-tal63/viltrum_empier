@@ -49,21 +49,31 @@ func (s *BoardService) CreateColmun(ctx context.Context, boardID primitive.Objec
 	now := time.Now()
 	colmunID := primitive.NewObjectID()
 
+	count, err := s.repo.CountBoardColumns(ctx, boardID)
+	if err != nil {
+		return nil, err
+	}
+
 	colmun := &Column{
 		ID:         colmunID,
 		BoardID:    boardID,
 		Name:       payload.Name,
-		Position:   0,
+		Position:   int(count),
 		Color:      "",
 		IsArchived: false,
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}
 
-	colmun, err := s.repo.CreateColmun(ctx, colmun)
+	colmun, err = s.repo.CreateColmun(ctx, colmun)
 	if err != nil {
 		return nil, err
 	}
 	return colmun, nil
+
+}
+
+func (s *BoardService) GetBoarderColumns(ctx context.Context, workspaceID primitive.ObjectID) ([]*Column, error) {
+	return s.repo.GetBoardColumns(ctx, workspaceID)
 
 }
