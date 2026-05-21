@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -109,4 +110,8 @@ func (s *WorkspaceService) AcceptInvite(ctx context.Context, workspaceID, userID
 	}
 	return NewMember, nil
 
+}
+
+func (s *WorkspaceService) GetWorkspacesUsers(ctx context.Context, workspaceID primitive.ObjectID) ([]bson.M, error) {
+	return s.workrepo.GetWorkspaceMembers(ctx, workspaceID)
 }

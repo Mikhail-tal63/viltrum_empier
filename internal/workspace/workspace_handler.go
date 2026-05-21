@@ -31,6 +31,8 @@ func (h *WorkspaceHandler) WorkspaceRouter(router *mux.Router) {
 	router.HandleFunc("/workspaces/invites", h.GetInviteByUserID).Methods("GET")
 	router.HandleFunc("/workspaces/{workspace_id}/invite", h.InviteUser).Methods("POST")
 	router.HandleFunc("/workspaces/{workspace_id}/invite/{invite_id}/accept", h.AcceptInvite).Methods("POST")
+	router.HandleFunc("/workspaces/{workspace_id}/users", h.GetWorkspacesUsers).Methods("GET")
+
 }
 
 func (h *WorkspaceHandler) CreateWorkspace(w http.ResponseWriter, r *http.Request) {
@@ -160,6 +162,23 @@ func (h *WorkspaceHandler) AcceptInvite(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err := json.WriteJSON(w, http.StatusOK, invite); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
+func (h *WorkspaceHandler) GetWorkspacesUsers(w http.ResponseWriter, r *http.Request) {
+	workspaceID, err := primitive.ObjectIDFromHex(mux.Vars(r)["workspace_id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	users, err := h.WorkspaceService.GetWorkspacesUsers(r.Context(), workspaceID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := json.WriteJSON(w, http.StatusOK, users); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}

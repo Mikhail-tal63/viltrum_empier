@@ -151,3 +151,54 @@ func (r *WorkspaceRepo) AcceptInvite(ctx context.Context, inviteID primitive.Obj
 	return err
 
 }
+func (r *WorkspaceRepo) GetWorkspaceMembers(ctx context.Context, workspaceID primitive.ObjectID) ([]bson.M, error) {
+
+	pipeline := mongo.Pipeline{
+
+		{
+			{"$match", bson.D{
+				{"workspace_id", workspaceID},
+			}},
+		},
+
+		{
+			{"$lookup", bson.D{
+				{"from", "users"},
+				{"localField", "user_id"},
+				{"foreignField", "_id"},
+				{"as", "user"},
+			}},
+		},
+
+		{
+			{"$unwind", "$user"},
+		},
+
+		{
+			{"$project", bson.D{
+				{"_id", 1},
+				{"role", 1},
+				{"workspace_id", 1},
+				{"user_id", 1},
+
+				{"username", "$user.username"},
+				{"email", "$user.email"},
+			}},
+		},
+	}
+
+	cursor, err := r.memberships.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+
+	var results []bson.M
+
+	if err := cursor.All(ctx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
