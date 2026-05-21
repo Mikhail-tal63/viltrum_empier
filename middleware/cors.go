@@ -2,6 +2,11 @@ package middleware
 
 import "net/http"
 
+func IsAllowedOrigin(origin string) bool {
+	_, ok := allowedOrigins[origin]
+	return ok
+}
+
 var allowedOrigins = map[string]struct{}{
 	"http://localhost:5173": {},
 	"http://localhost:8081": {},

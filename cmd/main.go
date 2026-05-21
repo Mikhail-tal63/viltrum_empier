@@ -6,6 +6,7 @@ import (
 	"github.com/Mikhail-tal63/viltrum_empier/cmd/api"
 	"github.com/Mikhail-tal63/viltrum_empier/config"
 	"github.com/Mikhail-tal63/viltrum_empier/database"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 )
 
 func main() {
@@ -15,9 +16,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := api.NewAPIServer(":"+config.ENVs.Port, mongoDB)
+	hub := websocket.NewHub()
+	go hub.Run()
+
+	server := api.NewAPIServer(":"+config.ENVs.Port, mongoDB, hub)
+
 	if err := server.Run(); err != nil {
 		log.Fatal(err)
 	}
-
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/Mikhail-tal63/viltrum_empier/internal/auth"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/task"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/workspace"
 	"github.com/Mikhail-tal63/viltrum_empier/middleware"
 	"github.com/gorilla/mux"
@@ -16,12 +17,14 @@ import (
 type APIServer struct {
 	addr string
 	db   *mongo.Database
+	hub  *websocket.Hub
 }
 
-func NewAPIServer(addr string, db *mongo.Database) *APIServer {
+func NewAPIServer(addr string, db *mongo.Database, hub *websocket.Hub) *APIServer {
 	return &APIServer{
 		addr: addr,
 		db:   db,
+		hub:  hub,
 	}
 }
 
@@ -61,6 +64,11 @@ func (s *APIServer) Run() error {
 	taskhandler.TaskRouter(protectedRouter)
 
 	log.Println("listening on ", s.addr)
+
+	/*websokcet*/
+	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		websocket.ServeWS(s.hub, w, r)
+	})
 
 	return http.ListenAndServe(s.addr, middleware.CORS(router))
 
