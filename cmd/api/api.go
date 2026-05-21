@@ -6,6 +6,7 @@ import (
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/auth"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/task"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/workspace"
 	"github.com/Mikhail-tal63/viltrum_empier/middleware"
 	"github.com/gorilla/mux"
@@ -52,6 +53,12 @@ func (s *APIServer) Run() error {
 	boardService := board.NewBoardService(boardRepo)
 	boardHandler := board.NewBoardHandler(boardService)
 	boardHandler.BoardRouter(protectedRouter)
+
+	/*tasks**********************************************/
+	taskrepo := task.NewTaskRepository(s.db)
+	taskservice := task.NewTaskService(taskrepo)
+	taskhandler := task.NewTaskHandler(taskservice)
+	taskhandler.TaskRouter(protectedRouter)
 
 	log.Println("listening on ", s.addr)
 
