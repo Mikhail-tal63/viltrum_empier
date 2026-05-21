@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TaskRepository struct {
@@ -47,4 +48,33 @@ func (r *TaskRepository) CountTaskColumns(
 	}
 
 	return count, nil
+}
+
+func (r *TaskRepository) ListTasks(
+	ctx context.Context,
+	columnID primitive.ObjectID,
+) ([]*Task, error) {
+
+	filter := bson.M{
+		"column_id":   columnID,
+		"is_archived": false,
+	}
+
+	opt := options.Find().SetSort(
+		bson.M{"position": 1},
+	)
+
+	cursor, err := r.collection.Find(ctx, filter, opt)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	tasks := []*Task{}
+
+	if err := cursor.All(ctx, &tasks); err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }

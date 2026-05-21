@@ -67,3 +67,7 @@ func (s *TaskService) CreateTask(ctx context.Context, payload *CreateTaskPayload
 	}
 	return createdTask, nil
 }
+
+func (s *TaskService) ListTasks(ctx context.Context, columnID primitive.ObjectID) ([]*Task, error) {
+	return s.repo.ListTasks(ctx, columnID)
+}
