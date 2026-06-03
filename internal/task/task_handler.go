@@ -49,7 +49,6 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-
 }
 
 func (h *TaskHandler) ListTasks(w http.ResponseWriter, r *http.Request) {

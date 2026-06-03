@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type BoardRepository struct {
@@ -66,6 +67,38 @@ func (r *BoardRepository) GetBoardColumns(ctx context.Context, boardID primitive
 		return nil, err
 	}
 	return columns, nil
+}
+
+func (r *BoardRepository) GetWorkspaceIDByColumn(
+	ctx context.Context,
+	columnID primitive.ObjectID,
+) (primitive.ObjectID, error) {
+
+	var col struct {
+		BoardID primitive.ObjectID `bson:"board_id"`
+	}
+	err := r.column.FindOne(
+		ctx,
+		bson.M{"_id": columnID},
+		options.FindOne().SetProjection(bson.M{"board_id": 1}),
+	).Decode(&col)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+
+	var b struct {
+		WorkspaceID primitive.ObjectID `bson:"workspace_id"`
+	}
+	err = r.collection.FindOne(
+		ctx,
+		bson.M{"_id": col.BoardID},
+		options.FindOne().SetProjection(bson.M{"workspace_id": 1}),
+	).Decode(&b)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+
+	return b.WorkspaceID, nil
 }
 
 func (r *BoardRepository) CountBoardColumns(

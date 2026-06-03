@@ -59,7 +59,7 @@ func (s *APIServer) Run() error {
 
 	/*tasks**********************************************/
 	taskrepo := task.NewTaskRepository(s.db)
-	taskservice := task.NewTaskService(taskrepo)
+	taskservice := task.NewTaskService(taskrepo, s.hub, boardRepo)
 	taskhandler := task.NewTaskHandler(taskservice)
 	taskhandler.TaskRouter(protectedRouter)
 
