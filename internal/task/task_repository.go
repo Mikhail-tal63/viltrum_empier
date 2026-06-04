@@ -78,3 +78,167 @@ func (r *TaskRepository) ListTasks(
 
 	return tasks, nil
 }
+
+func (r *TaskRepository) DeleteTask(ctx context.Context, taskID primitive.ObjectID) error {
+	firlter := bson.M{"_id": taskID}
+
+	_, err := r.collection.DeleteOne(ctx, firlter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *TaskRepository) UpdateTask(task *Task, ctx context.Context, taskID primitive.ObjectID) (*Task, error) {
+	filter := bson.M{"_id": taskID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"title":            task.Title,
+			"description":      task.Description,
+			"priority":         task.Priority,
+			"labels":           task.Labels,
+			"assigned_members": task.AssignedMembers,
+			"due_date":         task.DueDate,
+			"position":         task.Position,
+			"coulmn_id":        task.ColumnID,
+		},
+	}
+
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		return nil, err
+	}
+	return task, nil
+}
+
+func (r *TaskRepository) UpdateTaskLocation(
+	ctx context.Context,
+	taskID primitive.ObjectID,
+	columnID primitive.ObjectID,
+	position int,
+) error {
+
+	filter := bson.M{
+		"_id": taskID,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"column_id": columnID,
+			"position":  position,
+		},
+	}
+
+	_, err := r.collection.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+
+	return err
+}
+
+func (r *TaskRepository) DecrementPositionsInRange(
+	ctx context.Context,
+	columnID primitive.ObjectID,
+	oldPosition int,
+) error {
+
+	filter := bson.M{
+		"column_id": columnID,
+		"position": bson.M{
+			"$gt": oldPosition,
+		},
+		"is_archived": false,
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"position": -1,
+		},
+	}
+
+	_, err := r.collection.UpdateMany(
+		ctx,
+		filter,
+		update,
+	)
+
+	return err
+}
+
+func (r *TaskRepository) IncrementPositionsInRange(
+	ctx context.Context,
+	columnID primitive.ObjectID,
+	fromPosition int,
+) error {
+
+	filter := bson.M{
+		"column_id": columnID,
+		"position": bson.M{
+			"$gte": fromPosition,
+		},
+		"is_archived": false,
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"position": 1,
+		},
+	}
+
+	_, err := r.collection.UpdateMany(
+		ctx,
+		filter,
+		update,
+	)
+
+	return err
+}
+
+func (r *TaskRepository) ShiftPositions(
+	ctx context.Context,
+	columnID primitive.ObjectID,
+	fromPosition int,
+	toPosition int,
+	delta int,
+) error {
+
+	filter := bson.M{
+		"column_id": columnID,
+		"position": bson.M{
+			"$gte": fromPosition,
+			"$lte": toPosition,
+		},
+		"is_archived": false,
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"position": delta,
+		},
+	}
+
+	_, err := r.collection.UpdateMany(
+		ctx,
+		filter,
+		update,
+	)
+
+	return err
+}
+
+func (r *TaskRepository) GetTaskByID(ctx context.Context, taskid primitive.ObjectID) (*Task, error) {
+	filter := bson.M{"_id": taskid}
+	var task Task
+	err := r.collection.FindOne(ctx, filter).Decode(&task)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &task, nil
+}

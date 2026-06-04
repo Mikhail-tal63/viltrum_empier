@@ -70,3 +70,39 @@ func (h *TaskHandler) ListTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (h *TaskHandler) DragDropTaskToColumnHandelr(w http.ResponseWriter, r *http.Request) {
+	var payload DragPayload
+
+	err := json.ParseJSON(r, &payload)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	taskID, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	newcolumnID, err := primitive.ObjectIDFromHex(payload.NewColumnID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = h.service.DragDropTaskToColumn(r.Context(), payload.Position, taskID, newcolumnID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	err = json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "task moved successfully",
+	})
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+}
