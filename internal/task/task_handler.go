@@ -21,6 +21,8 @@ func NewTaskHandler(service *TaskService) *TaskHandler {
 func (h *TaskHandler) TaskRouter(router *mux.Router) {
 	router.HandleFunc("/columns/{column_id}/tasks", h.CreateTask).Methods("POST")
 	router.HandleFunc("/columns/{column_id}/tasks", h.ListTasks).Methods("GET")
+	router.HandleFunc("/tasks/{_id}/dragdrop", h.DragDropTaskToColumnHandelr).Methods("POST")
+	router.HandleFunc("/tasks/{_id}", h.EditTask).Methods("PUT")
 }
 func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var payload CreateTaskPayload
@@ -105,4 +107,30 @@ func (h *TaskHandler) DragDropTaskToColumnHandelr(w http.ResponseWriter, r *http
 		return
 	}
 
+}
+
+func (h *TaskHandler) EditTask(w http.ResponseWriter, r *http.Request) {
+	var payload EditTaskPayload
+
+	if err := json.ParseJSON(r, &payload); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	taslID, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.service.EditTaskDetails(r.Context(), &payload, taslID); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "task edited successfully",
+	}); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+	}
 }

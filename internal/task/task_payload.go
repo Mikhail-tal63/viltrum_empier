@@ -14,9 +14,9 @@ type EditTaskPayload struct {
 	Priority        string   `json:"priority"`
 	Labels          []string `json:"labels"`
 	AssignedMembers []string `json:"assigned_members"`
+	IsArchived      bool     `json:"is_archived"`
 }
 type DragPayload struct {
-	Position int `json:"position"`
-
+	Position    int    `json:"position"`
 	NewColumnID string `json:"new_column_id"`
 }

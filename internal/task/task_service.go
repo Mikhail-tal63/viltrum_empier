@@ -162,6 +162,39 @@ func (s *TaskService) DragDropTaskToColumn(ctx context.Context, newPosition int,
 	)
 }
 
+func (s *TaskService) EditTaskDetails(ctx context.Context, payload *EditTaskPayload, taskid primitive.ObjectID) error {
+
+	task, err := s.repo.GetTaskByID(ctx, taskid)
+	if err != nil {
+		return errors.New("task not found")
+	}
+
+	now := time.Now()
+	assignedMembers := []primitive.ObjectID{}
+	for _, id := range payload.AssignedMembers {
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return err
+		}
+		assignedMembers = append(assignedMembers, objectID)
+	}
+	task = &Task{
+		Title:           payload.Title,
+		Description:     payload.Description,
+		Priority:        payload.Priority,
+		AssignedMembers: assignedMembers,
+		Labels:          payload.Labels,
+		IsArchived:      payload.IsArchived,
+		UpdatedAt:       now,
+	}
+
+	err = s.repo.UpdateTask(task, ctx, taskid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 /*broadcasting*****************/
 func (s *TaskService) broadcastTaskCreated(
 	ctx context.Context,

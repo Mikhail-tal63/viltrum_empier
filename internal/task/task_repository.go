@@ -89,7 +89,7 @@ func (r *TaskRepository) DeleteTask(ctx context.Context, taskID primitive.Object
 	return nil
 }
 
-func (r *TaskRepository) UpdateTask(task *Task, ctx context.Context, taskID primitive.ObjectID) (*Task, error) {
+func (r *TaskRepository) UpdateTask(task *Task, ctx context.Context, taskID primitive.ObjectID) error {
 	filter := bson.M{"_id": taskID}
 
 	update := bson.M{
@@ -99,18 +99,17 @@ func (r *TaskRepository) UpdateTask(task *Task, ctx context.Context, taskID prim
 			"priority":         task.Priority,
 			"labels":           task.Labels,
 			"assigned_members": task.AssignedMembers,
-			"due_date":         task.DueDate,
-			"position":         task.Position,
-			"coulmn_id":        task.ColumnID,
+			"is_archived":      task.IsArchived,
+			"updated_at":       task.UpdatedAt,
 		},
 	}
 
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return task, nil
+	return nil
 }
 
 func (r *TaskRepository) UpdateTaskLocation(
