@@ -117,7 +117,7 @@ func (h *TaskHandler) EditTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taslID, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	taslID, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -132,5 +132,26 @@ func (h *TaskHandler) EditTask(w http.ResponseWriter, r *http.Request) {
 		"message": "task edited successfully",
 	}); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+	}
+}
+
+func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+
+	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.service.DeleteTask(r.Context(), id); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "task deleted seccessfuly",
+	}); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 }
