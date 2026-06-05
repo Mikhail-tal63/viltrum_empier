@@ -3,11 +3,12 @@ package task
 import (
 	"context"
 	"errors"
-	"log"
+
 	"time"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -162,10 +163,13 @@ func (s *TaskService) DragDropTaskToColumn(ctx context.Context, newPosition int,
 	)
 }
 
-func (s *TaskService) EditTaskDetails(ctx context.Context, payload *EditTaskPayload, taskid primitive.ObjectID) error {
-
+func (s *TaskService) EditTaskDetails(ctx context.Context, payload *EditTaskPayload, taskid, userid primitive.ObjectID) error {
 	task, err := s.repo.GetTaskByID(ctx, taskid)
 	if err != nil {
+		return err
+	}
+
+	if task == nil {
 		return errors.New("task not found")
 	}
 
@@ -192,28 +196,12 @@ func (s *TaskService) EditTaskDetails(ctx context.Context, payload *EditTaskPayl
 	if err != nil {
 		return err
 	}
-	return nil
-}
 
-/*broadcasting*****************/
-func (s *TaskService) broadcastTaskCreated(
-	ctx context.Context,
-	columnID primitive.ObjectID,
-	task *Task,
-	userID primitive.ObjectID,
-) {
-	workspaceID, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, columnID)
+	updatedTask, err := s.repo.GetTaskByID(ctx, taskid)
 	if err != nil {
-		log.Printf("ws: resolve workspace for column %s failed: %v", columnID.Hex(), err)
-		return
+		return err
 	}
-	payload, err := websocket.MarshalEvent(websocket.EventTaskCreated, map[string]any{
-		"task": task,
-		"by":   userID.Hex(),
-	})
-	if err != nil {
-		log.Printf("ws: marshal task_created failed: %v", err)
-		return
-	}
-	s.hub.BroadcastToWorkspace(workspaceID.Hex(), payload)
+	s.broadcastTaskUpdated(ctx, userid, updatedTask)
+
+	return nil
 }

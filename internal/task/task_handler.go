@@ -123,7 +123,11 @@ func (h *TaskHandler) EditTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.EditTaskDetails(r.Context(), &payload, taslID); err != nil {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+	}
+	if err := h.service.EditTaskDetails(r.Context(), &payload, taslID, userID); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
