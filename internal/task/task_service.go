@@ -88,7 +88,12 @@ func (s *TaskService) DeleteTask(ctx context.Context, taskID primitive.ObjectID)
 	return s.repo.DeleteTask(ctx, taskID)
 }
 
-func (s *TaskService) DragDropTaskToColumn(ctx context.Context, newPosition int, taskID primitive.ObjectID, newColumn primitive.ObjectID) error {
+func (s *TaskService) DragDropTaskToColumn(
+	ctx context.Context,
+	newPosition int,
+	taskID, userID primitive.ObjectID,
+	newColumn primitive.ObjectID,
+) error {
 
 	task, err := s.repo.GetTaskByID(ctx, taskID)
 	if err != nil {
@@ -105,62 +110,40 @@ func (s *TaskService) DragDropTaskToColumn(ctx context.Context, newPosition int,
 	if oldColumn == newColumn {
 
 		if oldPosition < newPosition {
-
-			err = s.repo.ShiftPositions(
-				ctx,
-				oldColumn,
-				oldPosition+1,
-				newPosition,
-				-1,
-			)
-
+			err = s.repo.ShiftPositions(ctx, oldColumn, oldPosition+1, newPosition, -1)
 		} else if oldPosition > newPosition {
-
-			err = s.repo.ShiftPositions(
-				ctx,
-				oldColumn,
-				newPosition,
-				oldPosition-1,
-				1,
-			)
+			err = s.repo.ShiftPositions(ctx, oldColumn, newPosition, oldPosition-1, 1)
 		}
 
 		if err != nil {
 			return err
 		}
 
-		return s.repo.UpdateTaskLocation(
-			ctx,
-			taskID,
-			newColumn,
-			newPosition,
-		)
+	} else {
+
+		err = s.repo.DecrementPositionsInRange(ctx, oldColumn, oldPosition)
+		if err != nil {
+			return err
+		}
+
+		err = s.repo.IncrementPositionsInRange(ctx, newColumn, newPosition)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = s.repo.DecrementPositionsInRange(
-		ctx,
-		oldColumn,
-		oldPosition,
-	)
+	if err := s.repo.UpdateTaskLocation(ctx, taskID, newColumn, newPosition); err != nil {
+		return err
+	}
+
+	updatedTask, err := s.repo.GetTaskByID(ctx, taskID)
 	if err != nil {
 		return err
 	}
 
-	err = s.repo.IncrementPositionsInRange(
-		ctx,
-		newColumn,
-		newPosition,
-	)
-	if err != nil {
-		return err
-	}
+	s.BroadcastTaskMoved(ctx, userID, updatedTask)
 
-	return s.repo.UpdateTaskLocation(
-		ctx,
-		taskID,
-		newColumn,
-		newPosition,
-	)
+	return nil
 }
 
 func (s *TaskService) EditTaskDetails(ctx context.Context, payload *EditTaskPayload, taskid, userid primitive.ObjectID) error {
@@ -201,7 +184,7 @@ func (s *TaskService) EditTaskDetails(ctx context.Context, payload *EditTaskPayl
 	if err != nil {
 		return err
 	}
-	s.broadcastTaskUpdated(ctx, userid, updatedTask)
+	s.BroadcastTaskUpdated(ctx, userid, updatedTask)
 
 	return nil
 }

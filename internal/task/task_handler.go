@@ -92,8 +92,12 @@ func (h *TaskHandler) DragDropTaskToColumnHandelr(w http.ResponseWriter, r *http
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+	}
 
-	err = h.service.DragDropTaskToColumn(r.Context(), payload.Position, taskID, newcolumnID)
+	err = h.service.DragDropTaskToColumn(r.Context(), payload.Position, taskID, userID, newcolumnID)
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return

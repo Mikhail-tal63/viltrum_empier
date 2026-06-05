@@ -45,7 +45,7 @@ func (s *TaskService) broadcastTaskCreated(
 	)
 }
 
-func (s *TaskService) broadcastTaskUpdated(ctx context.Context, userID primitive.ObjectID, task *Task) {
+func (s *TaskService) BroadcastTaskUpdated(ctx context.Context, userID primitive.ObjectID, task *Task) {
 	workspaceID, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, task.ColumnID)
 	if err != nil {
 		log.Printf("ws: resolve workspace failed: %v", err)
@@ -64,5 +64,25 @@ func (s *TaskService) broadcastTaskUpdated(ctx context.Context, userID primitive
 	}
 
 	s.hub.BroadcastToWorkspace(workspaceID.Hex(), payload)
+
+}
+
+func (s *TaskService) BroadcastTaskMoved(ctx context.Context, userid primitive.ObjectID, task *Task) {
+	workspaceID, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, task.ColumnID)
+	if err != nil {
+		log.Printf("ws: resolve workspace failed: %v", err)
+		return
+	}
+
+	paload, err := websocket.MarshalEvent(websocket.EventTaskMoved, map[string]any{
+		"task": task,
+		"by":   userid.Hex(),
+	})
+	if err != nil {
+		log.Printf("ws: marshal failed: %v", err)
+		return
+	}
+
+	s.hub.BroadcastToWorkspace(workspaceID.Hex(), paload)
 
 }
