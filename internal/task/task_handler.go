@@ -40,6 +40,7 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserID(r.Context())
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 	task, err := h.service.CreateTask(r.Context(), &payload, userID, columnID)
 	if err != nil {
@@ -95,6 +96,7 @@ func (h *TaskHandler) DragDropTaskToColumnHandelr(w http.ResponseWriter, r *http
 	userID, err := middleware.GetUserID(r.Context())
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	err = h.service.DragDropTaskToColumn(r.Context(), payload.Position, taskID, userID, newcolumnID)
@@ -130,6 +132,7 @@ func (h *TaskHandler) EditTask(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserID(r.Context())
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 	if err := h.service.EditTaskDetails(r.Context(), &payload, taslID, userID); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)

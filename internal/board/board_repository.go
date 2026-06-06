@@ -118,3 +118,16 @@ func (r *BoardRepository) CountBoardColumns(
 
 	return count, nil
 }
+
+func (r *BoardRepository) GetColumnByID(ctx context.Context, colmunID primitive.ObjectID) (*Column, error) {
+	filter := bson.M{"_id": colmunID}
+	var column Column
+	err := r.collection.FindOne(ctx, filter).Decode(&column)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &column, nil
+}

@@ -4,16 +4,19 @@ import (
 	"context"
 	"time"
 
+	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BoardService struct {
-	repo *BoardRepository
+	repo     *BoardRepository
+	boardHub *websocket.Hub
 }
 
-func NewBoardService(repo *BoardRepository) *BoardService {
+func NewBoardService(repo *BoardRepository, boardHub *websocket.Hub) *BoardService {
 	return &BoardService{
-		repo: repo,
+		repo:     repo,
+		boardHub: boardHub,
 	}
 }
 
@@ -45,7 +48,7 @@ func (s *BoardService) GetWorkspaceBoards(ctx context.Context, workspaceID primi
 
 /*colmuns ****************/
 
-func (s *BoardService) CreateColmun(ctx context.Context, boardID primitive.ObjectID, payload *ColumnPayload) (*Column, error) {
+func (s *BoardService) CreateColmun(ctx context.Context, boardID, userid primitive.ObjectID, payload *ColumnPayload) (*Column, error) {
 	now := time.Now()
 	colmunID := primitive.NewObjectID()
 
@@ -69,6 +72,8 @@ func (s *BoardService) CreateColmun(ctx context.Context, boardID primitive.Objec
 	if err != nil {
 		return nil, err
 	}
+
+	s.BroadcastColumnCreated(ctx, userid, colmun)
 	return colmun, nil
 
 }

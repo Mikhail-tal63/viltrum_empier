@@ -3,6 +3,7 @@ package board
 import (
 	"net/http"
 
+	"github.com/Mikhail-tal63/viltrum_empier/middleware"
 	"github.com/Mikhail-tal63/viltrum_empier/utils/json"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -62,6 +63,7 @@ func (h *BoardHandler) GetWorkspaceBoards(w http.ResponseWriter, r *http.Request
 	boards, err := h.service.GetWorkspaceBoards(r.Context(), workspaceid)
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 	if err := json.WriteJSON(w, http.StatusOK, boards); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
@@ -81,11 +83,12 @@ func (h *BoardHandler) CreateColmun(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
-
 	}
-	colmun, err := h.service.CreateColmun(r.Context(), boardID, &payload)
+	userID, err := middleware.GetUserID(r.Context())
+	colmun, err := h.service.CreateColmun(r.Context(), boardID, userID, &payload)
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 	if err := json.WriteJSON(w, http.StatusCreated, colmun); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
@@ -102,6 +105,7 @@ func (h *BoardHandler) GetBoarderColmuns(w http.ResponseWriter, r *http.Request)
 	colmuns, err := h.service.GetBoarderColumns(r.Context(), boardID)
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 	if err := json.WriteJSON(w, http.StatusOK, colmuns); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
