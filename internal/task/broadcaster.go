@@ -86,3 +86,23 @@ func (s *TaskService) BroadcastTaskMoved(ctx context.Context, userid primitive.O
 	s.hub.BroadcastToWorkspace(workspaceID.Hex(), paload)
 
 }
+
+func (s *TaskService) BroadcastTaskDeleted(ctx context.Context, userID primitive.ObjectID, tasl *Task) {
+	workspaceID, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, tasl.ColumnID)
+	if err != nil {
+		log.Printf("ws: resolve workspace failed: %v", err)
+		return
+	}
+
+	paylod, err := websocket.MarshalEvent(websocket.EventTaskDeleted, map[string]any{
+		"task": tasl,
+		"by":   userID.Hex(),
+	})
+	if err != nil {
+		log.Printf("ws: marshal failed: %v", err)
+		return
+	}
+
+	s.hub.BroadcastToWorkspace(workspaceID.Hex(), paylod)
+
+}

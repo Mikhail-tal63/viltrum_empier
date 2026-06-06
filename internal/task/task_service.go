@@ -84,8 +84,23 @@ func (s *TaskService) ListTasks(ctx context.Context, columnID primitive.ObjectID
 	return s.repo.ListTasks(ctx, columnID)
 }
 
-func (s *TaskService) DeleteTask(ctx context.Context, taskID primitive.ObjectID) error {
-	return s.repo.DeleteTask(ctx, taskID)
+func (s *TaskService) DeleteTask(ctx context.Context, taskID, userID primitive.ObjectID) error {
+	task, err := s.repo.GetTaskByID(ctx, taskID)
+	if err != nil {
+		return err
+	}
+	if task == nil {
+		return errors.New("task not found")
+	}
+	if err := s.repo.DecrementPositionsInRange(ctx, task.ColumnID, task.Position); err != nil {
+		return err
+	}
+	if err := s.repo.DeleteTask(ctx, taskID); err != nil {
+		return err
+	}
+	s.BroadcastTaskDeleted(ctx, userID, task)
+	return nil
+
 }
 
 func (s *TaskService) DragDropTaskToColumn(

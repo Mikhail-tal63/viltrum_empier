@@ -150,8 +150,12 @@ func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	if err := h.service.DeleteTask(r.Context(), id); err != nil {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := h.service.DeleteTask(r.Context(), id, userID); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
