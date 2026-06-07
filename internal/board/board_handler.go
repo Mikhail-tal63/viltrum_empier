@@ -41,14 +41,21 @@ func (h *BoardHandler) CreateBoard(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	board, err := h.service.CreateBoard(r.Context(), &payload, workspaceID)
+	userid, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	board, err := h.service.CreateBoard(r.Context(), &payload, userid, workspaceID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	if err := json.WriteJSON(w, http.StatusCreated, board); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
+
 	}
 
 }

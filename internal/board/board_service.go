@@ -21,7 +21,7 @@ func NewBoardService(repo *BoardRepository, boardHub *websocket.Hub) *BoardServi
 	}
 }
 
-func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayload, workspaceId primitive.ObjectID) (*Board, error) {
+func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayload, userID, workspaceId primitive.ObjectID) (*Board, error) {
 	now := time.Now()
 
 	boardID := primitive.NewObjectID()
@@ -39,6 +39,9 @@ func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayl
 	if err != nil {
 		return nil, err
 	}
+
+	s.BroadcastBoardCreated(userID, createdBoard)
+
 	return createdBoard, nil
 }
 
