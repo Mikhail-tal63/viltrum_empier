@@ -106,6 +106,39 @@ func (h *BoardHandler) DeleteBoard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *BoardHandler) UpdateBoardDetails(w http.ResponseWriter, r *http.Request) {
+	var paload PatchBoardPayload
+
+	if err := json.ParseJSON(r, &paload); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	boardID, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.service.UpdateBoardDetails(r.Context(), boardID, userID, &paload); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "board updated seccessfully",
+	})
+
+}
+
+/*column***************************************************************************/
+
 func (h *BoardHandler) CreateColmun(w http.ResponseWriter, r *http.Request) {
 	var payload ColumnPayload
 
