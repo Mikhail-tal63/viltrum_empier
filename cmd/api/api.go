@@ -52,13 +52,15 @@ func (s *APIServer) Run() error {
 	workspaceHandler.WorkspaceRouter(protectedRouter)
 
 	/*boards & colmuns *******************************/
+
 	boardRepo := board.NewBoardRepository(s.db)
-	boardService := board.NewBoardService(boardRepo, s.hub)
+	taskrepo := task.NewTaskRepository(s.db)
+	boardService := board.NewBoardService(boardRepo, s.hub, taskrepo)
 	boardHandler := board.NewBoardHandler(boardService)
 	boardHandler.BoardRouter(protectedRouter)
 
 	/*tasks**********************************************/
-	taskrepo := task.NewTaskRepository(s.db)
+	taskrepo = task.NewTaskRepository(s.db)
 	taskservice := task.NewTaskService(taskrepo, s.hub, boardRepo)
 	taskhandler := task.NewTaskHandler(taskservice)
 	taskhandler.TaskRouter(protectedRouter)

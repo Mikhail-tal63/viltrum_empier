@@ -7,18 +7,27 @@ import (
 	"time"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BoardService struct {
-	repo     *BoardRepository
-	boardHub *websocket.Hub
+	repo        *BoardRepository
+	boardHub    *websocket.Hub
+	taskDeleter TaskDeleter
+}
+type TaskDeleter interface {
+	DeleteColumnTasks(
+		ctx context.Context,
+		columnID primitive.ObjectID,
+	) error
 }
 
-func NewBoardService(repo *BoardRepository, boardHub *websocket.Hub) *BoardService {
+func NewBoardService(repo *BoardRepository, boardHub *websocket.Hub, taskDeleter TaskDeleter) *BoardService {
 	return &BoardService{
-		repo:     repo,
-		boardHub: boardHub,
+		repo:        repo,
+		boardHub:    boardHub,
+		taskDeleter: taskDeleter,
 	}
 }
 
@@ -110,6 +119,10 @@ func (s *BoardService) DeleteColumn(ctx context.Context, columnID, userID primit
 
 	workspaceID, err := s.repo.GetWorkspaceIDByColumn(ctx, columnID)
 	if err != nil {
+		return err
+	}
+
+	if err := s.taskDeleter.DeleteColumnTasks(ctx, columnID); err != nil {
 		return err
 	}
 
