@@ -69,6 +69,18 @@ func (s *BoardService) DeleteBoard(ctx context.Context, userid, boardID primitiv
 		return errors.New("board not found")
 	}
 	var workspaceID = board.WorkspaceID
+	var columns = []*Column{}
+
+	columns, err = s.repo.GetBoardColumns(ctx, boardID)
+	if err != nil {
+		return err
+	}
+	for _, column := range columns {
+
+		if err := s.DeleteColumn(ctx, column.ID, userid); err != nil {
+			return err
+		}
+	}
 
 	if err := s.repo.DeleteBoard(ctx, boardID); err != nil {
 		return err

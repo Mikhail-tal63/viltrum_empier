@@ -24,6 +24,8 @@ func (h *BoardHandler) BoardRouter(router *mux.Router) {
 	router.HandleFunc("/workspaces/{workspace_id}/boards", h.GetWorkspaceBoards).Methods("GET")
 	router.HandleFunc("/boards/{board_id}/colmuns", h.CreateColmun).Methods("POST")
 	router.HandleFunc("/boards/{board_id}/columns", h.GetBoarderColmuns).Methods("GET")
+	router.HandleFunc("/boards/{id}", h.DeleteBoard).Methods("DELETE")
+	router.HandleFunc("/colmuns/{id}", h.DeleteColumn).Methods("DELETE")
 
 }
 

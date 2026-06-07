@@ -97,6 +97,15 @@ func (r *TaskRepository) DeleteColumnTasks(ctx context.Context, colmunID primiti
 	}
 	return nil
 }
+func (r *TaskRepository) DeleteBoardTasks(ctx context.Context, boardID primitive.ObjectID) error {
+	firlter := bson.M{"board_id": boardID}
+
+	_, err := r.collection.DeleteMany(ctx, firlter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func (r *TaskRepository) UpdateTask(task *Task, ctx context.Context, taskID primitive.ObjectID) error {
 	filter := bson.M{"_id": taskID}
