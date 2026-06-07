@@ -163,3 +163,40 @@ func (h *BoardHandler) DeleteColumn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *BoardHandler) DragDropColumn(w http.ResponseWriter, r *http.Request) {
+	var position DragColumnPayload
+	if err := json.ParseJSON(r, &position); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	boardID, err := primitive.ObjectIDFromHex(mux.Vars(r)["board_id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	colmunID, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.service.DragDropColumn(r.Context(), colmunID, boardID, userID, position.Position); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "column moved ",
+	}); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+	}
+
+}

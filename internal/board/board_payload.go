@@ -7,3 +7,6 @@ type CreateBoardPayload struct {
 type ColumnPayload struct {
 	Name string `json:"name"`
 }
+type DragColumnPayload struct {
+	Position int `json:"position"`
+}
