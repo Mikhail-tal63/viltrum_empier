@@ -200,7 +200,7 @@ func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, us
 	return nil
 }
 
-func (s *BoardService) UpdateColumnDetails(ctx context.Context, columnID primitive.ObjectID, payload *PatchColumnPayload) error {
+func (s *BoardService) UpdateColumnDetails(ctx context.Context, columnID, userID primitive.ObjectID, payload *PatchColumnPayload) error {
 	update := bson.M{}
 
 	if payload.Name != nil {
@@ -220,5 +220,13 @@ func (s *BoardService) UpdateColumnDetails(ctx context.Context, columnID primiti
 	if err := s.repo.UpdateColumnDetails(ctx, columnID, update); err != nil {
 		return err
 	}
+
+	updated, err := s.repo.GetColumnByID(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	s.BroadcastColumnUpdated(ctx, userID, updated)
+
 	return nil
 }

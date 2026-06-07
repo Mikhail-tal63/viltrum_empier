@@ -215,7 +215,12 @@ func (h *BoardHandler) UpdateColumnDetails(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := h.service.UpdateColumnDetails(r.Context(), columnID, &paload); err != nil {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := h.service.UpdateColumnDetails(r.Context(), columnID, userID, &paload); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
