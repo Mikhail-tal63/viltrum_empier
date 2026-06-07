@@ -188,7 +188,36 @@ func (r *BoardRepository) IncrementPositionsInRange(ctx context.Context, boardID
 	}
 	return nil
 }
+func (r *BoardRepository) ShiftPositions(
+	ctx context.Context,
+	boardID primitive.ObjectID,
+	fromPosition int,
+	toPosition int,
+	delta int,
+) error {
 
+	filter := bson.M{
+		"board_id": boardID,
+		"position": bson.M{
+			"$gte": fromPosition,
+			"$lte": toPosition,
+		},
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"position": delta,
+		},
+	}
+
+	_, err := r.collection.UpdateMany(
+		ctx,
+		filter,
+		update,
+	)
+
+	return err
+}
 func (r *BoardRepository) DecrementPositionsInRange(ctx context.Context, boardID primitive.ObjectID, oldPosition int) error {
 
 	filter := bson.M{

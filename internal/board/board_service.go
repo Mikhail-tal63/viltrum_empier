@@ -146,3 +146,47 @@ func (s *BoardService) DeleteColumn(ctx context.Context, columnID, userID primit
 
 	return nil
 }
+
+func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, userID primitive.ObjectID, newPosition int) error {
+	column, err := s.repo.GetColumnByID(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	oldPosition := column.Position
+
+	if oldPosition < newPosition {
+
+		err = s.repo.ShiftPositions(
+			ctx,
+			boardID,
+			oldPosition+1,
+			newPosition,
+			-1,
+		)
+
+	} else if oldPosition > newPosition {
+
+		err = s.repo.ShiftPositions(
+			ctx,
+			boardID,
+			newPosition,
+			oldPosition-1,
+			1,
+		)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.UpdateColumnLocation(
+		ctx,
+		columnID,
+		newPosition,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
