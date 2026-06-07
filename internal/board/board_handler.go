@@ -78,6 +78,31 @@ func (h *BoardHandler) GetWorkspaceBoards(w http.ResponseWriter, r *http.Request
 
 }
 
+func (h *BoardHandler) DeleteBoard(w http.ResponseWriter, r *http.Request) {
+	boardID, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.service.DeleteBoard(r.Context(), userID, boardID); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "board deleted",
+	}); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
 func (h *BoardHandler) CreateColmun(w http.ResponseWriter, r *http.Request) {
 	var payload ColumnPayload
 

@@ -24,6 +24,19 @@ func (s *BoardService) BroadcastBoardCreated(userID primitive.ObjectID, board *B
 	s.boardHub.BroadcastToWorkspace(workspaceID.Hex(), payload)
 
 }
+func (s *BoardService) BroadcastBoardDelete(ctx context.Context, userID, boardID, workspaceID primitive.ObjectID) {
+
+	payload, err := websocket.MarshalEvent(websocket.EventBoardDeleted, map[string]any{
+		"board_id": boardID.Hex(),
+		"by":       userID.Hex(),
+	})
+	if err != nil {
+		log.Printf("ws: marshal workspace failed: %v", err)
+		return
+	}
+
+	s.boardHub.BroadcastToWorkspace(workspaceID.Hex(), payload)
+}
 
 /*columns*********************************************************************************************************************************
 ******************************************************************************************************************************************/

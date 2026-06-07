@@ -2,6 +2,7 @@ package board
 
 import (
 	"context"
+	"errors"
 
 	"time"
 
@@ -47,7 +48,26 @@ func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayl
 
 func (s *BoardService) GetWorkspaceBoards(ctx context.Context, workspaceID primitive.ObjectID) ([]*Board, error) {
 	return s.repo.GetWorkspaceBoards(ctx, workspaceID)
+}
 
+func (s *BoardService) DeleteBoard(ctx context.Context, userid, boardID primitive.ObjectID) error {
+
+	board, err := s.repo.GetBoardByID(ctx, boardID)
+	if err != nil {
+		return err
+	}
+	if board == nil {
+		return errors.New("board not found")
+	}
+	var workspaceID = board.WorkspaceID
+
+	if err := s.repo.DeleteBoard(ctx, boardID); err != nil {
+		return err
+	}
+
+	s.BroadcastBoardDelete(ctx, userid, boardID, workspaceID)
+
+	return nil
 }
 
 /*colmuns ****************/

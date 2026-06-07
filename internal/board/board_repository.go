@@ -44,6 +44,30 @@ func (r *BoardRepository) GetWorkspaceBoards(ctx context.Context, workspaceID pr
 	return boards, nil
 }
 
+func (r *BoardRepository) DeleteBoard(ctx context.Context, boardID primitive.ObjectID) error {
+	filter := bson.M{"_id": boardID}
+
+	_, err := r.collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *BoardRepository) GetBoardByID(ctx context.Context, boardID primitive.ObjectID) (*Board, error) {
+	filter := bson.M{"_id": boardID}
+	var board Board
+	err := r.collection.FindOne(ctx, filter).Decode(&board)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &board, err
+
+}
+
 /*culmuns **************************************************************************************************************************************
 *************************************************************************************************************************************************
 *************************************************************************************************************************************************/
