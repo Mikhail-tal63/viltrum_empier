@@ -8,6 +8,7 @@ import (
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -196,5 +197,28 @@ func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, us
 	}
 
 	s.BroadcastMoveColumn(ctx, userID, updatedColumn)
+	return nil
+}
+
+func (s *BoardService) UpdateColumnDetails(ctx context.Context, columnID primitive.ObjectID, payload *PatchColumnPayload) error {
+	update := bson.M{}
+
+	if payload.Name != nil {
+		update["name"] = *payload.Name
+	}
+
+	if payload.Color != nil {
+		update["color"] = *payload.Color
+	}
+
+	if payload.IsArchived != nil {
+		update["is_archived"] = *payload.IsArchived
+	}
+
+	update["updated_at"] = time.Now()
+
+	if err := s.repo.UpdateColumnDetails(ctx, columnID, update); err != nil {
+		return err
+	}
 	return nil
 }

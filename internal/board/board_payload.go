@@ -10,3 +10,8 @@ type ColumnPayload struct {
 type DragColumnPayload struct {
 	Position int `json:"position"`
 }
+type PatchColumnPayload struct {
+	Name       *string `json:"name"`
+	Color      *string `json:"color"`
+	IsArchived *bool   `json:"is_archived"`
+}

@@ -201,7 +201,7 @@ func (r *BoardRepository) ShiftPositions(
 		"position": bson.M{
 			"$gte": fromPosition,
 			"$lte": toPosition,
-		},
+		}, "is_archived": false,
 	}
 
 	update := bson.M{
@@ -254,5 +254,16 @@ func (r *BoardRepository) UpdateColumnLocation(ctx context.Context, columnID pri
 	if err != nil {
 		return err
 	}
+	return err
+}
+
+func (r *BoardRepository) UpdateColumnDetails(ctx context.Context, columnID primitive.ObjectID, fields bson.M) error {
+	filter := bson.M{"_id": columnID}
+
+	update := bson.M{
+		"$set": fields,
+	}
+
+	_, err := r.column.UpdateOne(ctx, filter, update)
 	return err
 }

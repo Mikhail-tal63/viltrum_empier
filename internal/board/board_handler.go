@@ -201,3 +201,26 @@ func (h *BoardHandler) DragDropColumn(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (h *BoardHandler) UpdateColumnDetails(w http.ResponseWriter, r *http.Request) {
+	var paload PatchColumnPayload
+	if err := json.ParseJSON(r, &paload); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	columnID, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.service.UpdateColumnDetails(r.Context(), columnID, &paload); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "column updated seccessfully",
+	})
+}
