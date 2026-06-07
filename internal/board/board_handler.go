@@ -112,3 +112,20 @@ func (h *BoardHandler) GetBoarderColmuns(w http.ResponseWriter, r *http.Request)
 	}
 
 }
+
+func (h *BoardHandler) DeleteColumn(w http.ResponseWriter, r *http.Request) {
+	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	userid, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := h.service.DeleteColumn(r.Context(), id, userid); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+}

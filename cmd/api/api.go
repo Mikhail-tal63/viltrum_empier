@@ -53,7 +53,7 @@ func (s *APIServer) Run() error {
 
 	/*boards & colmuns *******************************/
 	boardRepo := board.NewBoardRepository(s.db)
-	boardService := board.NewBoardService(boardRepo, boardHub)
+	boardService := board.NewBoardService(boardRepo, s.hub)
 	boardHandler := board.NewBoardHandler(boardService)
 	boardHandler.BoardRouter(protectedRouter)
 

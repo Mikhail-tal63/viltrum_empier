@@ -131,3 +131,13 @@ func (r *BoardRepository) GetColumnByID(ctx context.Context, colmunID primitive.
 	}
 	return &column, nil
 }
+
+func (r *BoardRepository) DeleteColumn(ctx context.Context, columnID primitive.ObjectID) error {
+	filter := bson.M{"_id": columnID}
+
+	_, err := r.collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
+}

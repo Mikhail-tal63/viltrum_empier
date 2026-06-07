@@ -2,6 +2,7 @@ package board
 
 import (
 	"context"
+
 	"time"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
@@ -80,5 +81,20 @@ func (s *BoardService) CreateColmun(ctx context.Context, boardID, userid primiti
 
 func (s *BoardService) GetBoarderColumns(ctx context.Context, workspaceID primitive.ObjectID) ([]*Column, error) {
 	return s.repo.GetBoardColumns(ctx, workspaceID)
+}
 
+func (s *BoardService) DeleteColumn(ctx context.Context, columnID, userID primitive.ObjectID) error {
+
+	workspaceID, err := s.repo.GetWorkspaceIDByColumn(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.DeleteColumn(ctx, columnID); err != nil {
+		return err
+	}
+
+	s.BroadcastColumnDelete(ctx, userID, columnID, workspaceID)
+
+	return nil
 }
