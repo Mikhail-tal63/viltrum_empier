@@ -15,3 +15,6 @@ type PatchColumnPayload struct {
 	Color      *string `json:"color"`
 	IsArchived *bool   `json:"is_archived"`
 }
+type PatchBoardPayload struct {
+	Name *string `json:"name"`
+}

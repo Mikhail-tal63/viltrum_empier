@@ -92,6 +92,22 @@ func (s *BoardService) DeleteBoard(ctx context.Context, userid, boardID primitiv
 	return nil
 }
 
+func (s *BoardService) UpdateBoardDetails(ctx context.Context, boardID, userID primitive.ObjectID, payload *PatchBoardPayload) error {
+	update := bson.M{}
+
+	if payload.Name != nil {
+		update["name"] = *payload.Name
+	}
+
+	update["updated_at"] = time.Now()
+
+	if err := s.repo.UpdateBoardDetails(ctx, boardID, update); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 /*colmuns ****************/
 
 func (s *BoardService) CreateColmun(ctx context.Context, boardID, userid primitive.ObjectID, payload *ColumnPayload) (*Column, error) {

@@ -75,7 +75,7 @@ func (r *BoardRepository) UpdateBoardDetails(ctx context.Context, boardID primit
 		"$set": fields,
 	}
 
-	_, err := r.column.UpdateOne(ctx, filter, update)
+	_, err := r.collection.UpdateOne(ctx, filter, update)
 	return err
 }
 
