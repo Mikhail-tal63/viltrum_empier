@@ -167,3 +167,63 @@ func (r *BoardRepository) DeleteColumn(ctx context.Context, columnID primitive.O
 	}
 	return nil
 }
+
+func (r *BoardRepository) IncrementPositionsInRange(ctx context.Context, boardID primitive.ObjectID, fromPosition int) error {
+	filter := bson.M{
+		"board_id": boardID,
+		"position": bson.M{
+			"$gte": fromPosition,
+		},
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"position": 1,
+		},
+	}
+
+	_, err := r.column.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *BoardRepository) DecrementPositionsInRange(ctx context.Context, boardID primitive.ObjectID, oldPosition int) error {
+
+	filter := bson.M{
+		"board_id": boardID,
+		"position": bson.M{
+			"$gt": oldPosition,
+		},
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"position": -1,
+		},
+	}
+
+	_, err := r.column.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return err
+
+}
+
+func (r *BoardRepository) UpdateColumnLocation(ctx context.Context, columnID primitive.ObjectID, position int) error {
+	filter := bson.M{"_id": columnID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"position": position,
+		},
+	}
+
+	_, err := r.column.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return err
+}
