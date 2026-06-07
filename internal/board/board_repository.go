@@ -68,6 +68,17 @@ func (r *BoardRepository) GetBoardByID(ctx context.Context, boardID primitive.Ob
 
 }
 
+func (r *BoardRepository) UpdateBoardDetails(ctx context.Context, boardID primitive.ObjectID, fields bson.M) error {
+	filter := bson.M{"_id": boardID}
+
+	update := bson.M{
+		"$set": fields,
+	}
+
+	_, err := r.column.UpdateOne(ctx, filter, update)
+	return err
+}
+
 /*culmuns **************************************************************************************************************************************
 *************************************************************************************************************************************************
 *************************************************************************************************************************************************/
