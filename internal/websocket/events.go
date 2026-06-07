@@ -11,4 +11,5 @@ const (
 	EventColumnUpdated = "column_updated"
 	EventBoardCreated  = "board_created"
 	EventBoardDeleted  = "board_deleted"
+	EventBoardUpdated  = "board_updated"
 )

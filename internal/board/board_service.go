@@ -105,6 +105,13 @@ func (s *BoardService) UpdateBoardDetails(ctx context.Context, boardID, userID p
 		return err
 	}
 
+	board, err := s.repo.GetBoardByID(ctx, boardID)
+	if err != nil {
+		return err
+	}
+
+	s.BroadcastBoardUpdated(ctx, userID, board)
+
 	return nil
 }
 
