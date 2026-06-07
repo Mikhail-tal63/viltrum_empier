@@ -73,3 +73,21 @@ func (s *BoardService) BroadcastColumnDelete(ctx context.Context, userID, colmun
 
 	s.boardHub.BroadcastToWorkspace(workspaceID.Hex(), payload)
 }
+
+func (s *BoardService) BroadcastMoveColumn(ctx context.Context, userID primitive.ObjectID, column *Column) {
+	workspaceID, err := s.repo.GetWorkspaceIDByColumn(ctx, column.ID)
+	if err != nil {
+		log.Printf("ws: resolve workspace failed: %v", err)
+		return
+	}
+	payload, err := websocket.MarshalEvent(websocket.EventColumnMoved, map[string]any{
+		"column": column,
+		"by":     userID.Hex(),
+	})
+	if err != nil {
+		log.Printf("ws: marshal workspace failed: %v", err)
+		return
+	}
+
+	s.boardHub.BroadcastToWorkspace(workspaceID.Hex(), payload)
+}

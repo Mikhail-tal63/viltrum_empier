@@ -6,6 +6,7 @@ const (
 	EventTaskMoved     = "task_moved"
 	EventTaskDeleted   = "task_deleted"
 	EventColumnCreated = "column_created"
+	EventColumnMoved   = "column_moved"
 	EventColumnDeleted = "column_deleted"
 	EventColumnUpdated = "column_updated"
 	EventBoardCreated  = "board_created"

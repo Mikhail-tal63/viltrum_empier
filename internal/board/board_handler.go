@@ -26,6 +26,7 @@ func (h *BoardHandler) BoardRouter(router *mux.Router) {
 	router.HandleFunc("/boards/{board_id}/columns", h.GetBoarderColmuns).Methods("GET")
 	router.HandleFunc("/boards/{id}", h.DeleteBoard).Methods("DELETE")
 	router.HandleFunc("/colmuns/{id}", h.DeleteColumn).Methods("DELETE")
+	router.HandleFunc("/boards/{board_id}/colmuns/{id}", h.DragDropColumn).Methods("PATCH")
 
 }
 

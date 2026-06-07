@@ -152,7 +152,9 @@ func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, us
 	if err != nil {
 		return err
 	}
-
+	if column == nil {
+		return errors.New("column not found")
+	}
 	oldPosition := column.Position
 
 	if oldPosition < newPosition {
@@ -188,5 +190,11 @@ func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, us
 		return err
 	}
 
+	updatedColumn, err := s.repo.GetColumnByID(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	s.BroadcastMoveColumn(ctx, userID, updatedColumn)
 	return nil
 }
