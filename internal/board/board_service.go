@@ -174,7 +174,7 @@ func (s *BoardService) CreateColmun(ctx context.Context, boardID, userid primiti
 		ctx,
 		userid,
 		checkboard.WorkspaceID,
-		permission.PermEditBoard,
+		permission.PermCreateColumn,
 	)
 
 	if !allowed {
@@ -221,7 +221,17 @@ func (s *BoardService) DeleteColumn(ctx context.Context, columnID, userID primit
 	if err != nil {
 		return err
 	}
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		workspaceID,
+		permission.PermDeleteColumn,
+	)
 
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
 	if err := s.taskDeleter.DeleteColumnTasks(ctx, columnID); err != nil {
 		return err
 	}
@@ -236,6 +246,24 @@ func (s *BoardService) DeleteColumn(ctx context.Context, columnID, userID primit
 }
 
 func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, userID primitive.ObjectID, newPosition int) error {
+
+	var worspaceID, err = s.repo.GetWorkspaceIDByColumn(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		worspaceID,
+		permission.PermEditColumn,
+	)
+
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
+
 	column, err := s.repo.GetColumnByID(ctx, columnID)
 	if err != nil {
 		return err
@@ -288,6 +316,24 @@ func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, us
 }
 
 func (s *BoardService) UpdateColumnDetails(ctx context.Context, columnID, userID primitive.ObjectID, payload *PatchColumnPayload) error {
+
+	var worspaceID, err = s.repo.GetWorkspaceIDByColumn(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		worspaceID,
+		permission.PermEditColumn,
+	)
+
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
+
 	update := bson.M{}
 
 	if payload.Name != nil {
