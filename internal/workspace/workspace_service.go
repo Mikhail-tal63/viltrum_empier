@@ -115,3 +115,28 @@ func (s *WorkspaceService) AcceptInvite(ctx context.Context, workspaceID, userID
 func (s *WorkspaceService) GetWorkspacesUsers(ctx context.Context, workspaceID primitive.ObjectID) ([]bson.M, error) {
 	return s.workrepo.GetWorkspaceMembers(ctx, workspaceID)
 }
+func (s *WorkspaceService) HasPermission(
+	ctx context.Context,
+	userID primitive.ObjectID,
+	workspaceID primitive.ObjectID,
+	permission string,
+) bool {
+
+	member, err := s.workrepo.GetWorkspaceMember(
+		ctx,
+		workspaceID,
+		userID,
+	)
+
+	if err != nil || member == nil {
+		return false
+	}
+
+	for _, p := range member.Permissions {
+		if p == permission {
+			return true
+		}
+	}
+
+	return false
+}

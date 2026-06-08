@@ -161,6 +161,27 @@ func (s *BoardService) UpdateBoardDetails(ctx context.Context, boardID, userID p
 /*colmuns ****************/
 
 func (s *BoardService) CreateColmun(ctx context.Context, boardID, userid primitive.ObjectID, payload *ColumnPayload) (*Column, error) {
+
+	checkboard, err := s.repo.GetBoardByID(ctx, boardID)
+	if err != nil {
+		return nil, err
+	}
+	if checkboard == nil {
+		return nil, errors.New("board not found")
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userid,
+		checkboard.WorkspaceID,
+		permission.PermEditBoard,
+	)
+
+	if !allowed {
+
+		return nil, errors.New("permission denied")
+	}
+
 	now := time.Now()
 	colmunID := primitive.NewObjectID()
 

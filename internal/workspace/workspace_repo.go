@@ -50,7 +50,29 @@ func (r *WorkspaceRepo) CreateWorkspaceMember(member *WorkspaceMember) (*Workspa
 	return member, nil
 
 }
+func (r *WorkspaceRepo) GetWorkspaceMember(
+	ctx context.Context,
+	workspaceID,
+	userID primitive.ObjectID,
+) (*WorkspaceMember, error) {
 
+	filter := bson.M{
+		"workspace_id": workspaceID,
+		"user_id":      userID,
+	}
+
+	var member WorkspaceMember
+
+	err := r.memberships.FindOne(ctx, filter).Decode(&member)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &member, nil
+}
 func (r *WorkspaceRepo) ListWorkspaces(ctx context.Context, userID primitive.ObjectID) ([]*Workspace, error) {
 
 	filter := bson.M{
