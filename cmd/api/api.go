@@ -6,6 +6,7 @@ import (
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/auth"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
+
 	"github.com/Mikhail-tal63/viltrum_empier/internal/task"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/workspace"
@@ -55,7 +56,8 @@ func (s *APIServer) Run() error {
 
 	boardRepo := board.NewBoardRepository(s.db)
 	taskrepo := task.NewTaskRepository(s.db)
-	boardService := board.NewBoardService(boardRepo, s.hub, taskrepo)
+
+	boardService := board.NewBoardService(boardRepo, s.hub, taskrepo, workspaceService)
 	boardHandler := board.NewBoardHandler(boardService)
 	boardHandler.BoardRouter(protectedRouter)
 

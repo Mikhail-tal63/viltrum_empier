@@ -6,6 +6,7 @@ import (
 
 	"time"
 
+	"github.com/Mikhail-tal63/viltrum_empier/internal/permission"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,9 +14,10 @@ import (
 )
 
 type BoardService struct {
-	repo        *BoardRepository
-	boardHub    *websocket.Hub
-	taskDeleter TaskDeleter
+	repo              *BoardRepository
+	boardHub          *websocket.Hub
+	taskDeleter       TaskDeleter
+	permissionChecker PermissionChecker
 }
 type TaskDeleter interface {
 	DeleteColumnTasks(
@@ -23,16 +25,30 @@ type TaskDeleter interface {
 		columnID primitive.ObjectID,
 	) error
 }
+type PermissionChecker interface {
+	HasPermission(
+		ctx context.Context,
+		userID, workspaceID primitive.ObjectID,
+		PermDeleteBoard string,
+	) bool
+}
 
-func NewBoardService(repo *BoardRepository, boardHub *websocket.Hub, taskDeleter TaskDeleter) *BoardService {
+func NewBoardService(repo *BoardRepository, boardHub *websocket.Hub, taskDeleter TaskDeleter, permissionChecker PermissionChecker) *BoardService {
 	return &BoardService{
-		repo:        repo,
-		boardHub:    boardHub,
-		taskDeleter: taskDeleter,
+		repo:              repo,
+		boardHub:          boardHub,
+		taskDeleter:       taskDeleter,
+		permissionChecker: permissionChecker,
 	}
 }
 
 func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayload, userID, workspaceId primitive.ObjectID) (*Board, error) {
+
+	allawed := s.permissionChecker.HasPermission(ctx, userID, workspaceId, permission.PermCreateBoard)
+
+	if !allawed {
+		return nil, errors.New("permission denied")
+	}
 	now := time.Now()
 
 	boardID := primitive.NewObjectID()
@@ -69,8 +85,15 @@ func (s *BoardService) DeleteBoard(ctx context.Context, userid, boardID primitiv
 	if board == nil {
 		return errors.New("board not found")
 	}
+
 	var workspaceID = board.WorkspaceID
 	var columns = []*Column{}
+
+	allawed := s.permissionChecker.HasPermission(ctx, userid, workspaceID, permission.PermDeleteTask)
+
+	if !allawed {
+		return errors.New("permission denied")
+	}
 
 	columns, err = s.repo.GetBoardColumns(ctx, boardID)
 	if err != nil {
@@ -93,6 +116,26 @@ func (s *BoardService) DeleteBoard(ctx context.Context, userid, boardID primitiv
 }
 
 func (s *BoardService) UpdateBoardDetails(ctx context.Context, boardID, userID primitive.ObjectID, payload *PatchBoardPayload) error {
+
+	checkboard, err := s.repo.GetBoardByID(ctx, boardID)
+	if err != nil {
+		return err
+	}
+	if checkboard == nil {
+		return errors.New("board not found")
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		checkboard.WorkspaceID,
+		permission.PermEditBoard,
+	)
+
+	if !allowed {
+		return errors.New("permission denied")
+	}
+
 	update := bson.M{}
 
 	if payload.Name != nil {
@@ -118,6 +161,27 @@ func (s *BoardService) UpdateBoardDetails(ctx context.Context, boardID, userID p
 /*colmuns ****************/
 
 func (s *BoardService) CreateColmun(ctx context.Context, boardID, userid primitive.ObjectID, payload *ColumnPayload) (*Column, error) {
+
+	checkboard, err := s.repo.GetBoardByID(ctx, boardID)
+	if err != nil {
+		return nil, err
+	}
+	if checkboard == nil {
+		return nil, errors.New("board not found")
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userid,
+		checkboard.WorkspaceID,
+		permission.PermCreateColumn,
+	)
+
+	if !allowed {
+
+		return nil, errors.New("permission denied")
+	}
+
 	now := time.Now()
 	colmunID := primitive.NewObjectID()
 
@@ -157,7 +221,17 @@ func (s *BoardService) DeleteColumn(ctx context.Context, columnID, userID primit
 	if err != nil {
 		return err
 	}
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		workspaceID,
+		permission.PermDeleteColumn,
+	)
 
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
 	if err := s.taskDeleter.DeleteColumnTasks(ctx, columnID); err != nil {
 		return err
 	}
@@ -172,6 +246,24 @@ func (s *BoardService) DeleteColumn(ctx context.Context, columnID, userID primit
 }
 
 func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, userID primitive.ObjectID, newPosition int) error {
+
+	var worspaceID, err = s.repo.GetWorkspaceIDByColumn(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		worspaceID,
+		permission.PermEditColumn,
+	)
+
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
+
 	column, err := s.repo.GetColumnByID(ctx, columnID)
 	if err != nil {
 		return err
@@ -224,6 +316,24 @@ func (s *BoardService) DragDropColumn(ctx context.Context, columnID, boardID, us
 }
 
 func (s *BoardService) UpdateColumnDetails(ctx context.Context, columnID, userID primitive.ObjectID, payload *PatchColumnPayload) error {
+
+	var worspaceID, err = s.repo.GetWorkspaceIDByColumn(ctx, columnID)
+	if err != nil {
+		return err
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		worspaceID,
+		permission.PermEditColumn,
+	)
+
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
+
 	update := bson.M{}
 
 	if payload.Name != nil {

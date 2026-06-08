@@ -27,6 +27,8 @@ type WorkspaceMember struct {
 	Role string `bson:"role" json:"role"`
 	Permissions []string `bson:"permissions"`
 
+	Permissions []string
+
 	JoinedAt time.Time `bson:"joined_at" json:"joined_at"`
 }
 

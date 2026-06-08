@@ -7,26 +7,54 @@ import (
 	"time"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/permission"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type TaskService struct {
-	repo      *TaskRepository
-	hub       *websocket.Hub
-	boardRepo *board.BoardRepository
+	repo              *TaskRepository
+	hub               *websocket.Hub
+	boardRepo         *board.BoardRepository
+	permissionChecker PermissionChecker
+}
+type PermissionChecker interface {
+	HasPermission(
+		ctx context.Context,
+		userID, workspaceID primitive.ObjectID,
+		PermDeleteBoard string,
+	) bool
 }
 
-func NewTaskService(repo *TaskRepository, hub *websocket.Hub, boardRepo *board.BoardRepository) *TaskService {
+func NewTaskService(repo *TaskRepository, hub *websocket.Hub, boardRepo *board.BoardRepository, permissionChecker PermissionChecker) *TaskService {
 	return &TaskService{
-		repo:      repo,
-		hub:       hub,
-		boardRepo: boardRepo,
+		repo:              repo,
+		hub:               hub,
+		boardRepo:         boardRepo,
+		permissionChecker: permissionChecker,
 	}
 }
 
 func (s *TaskService) CreateTask(ctx context.Context, payload *CreateTaskPayload, user, columnID primitive.ObjectID) (*Task, error) {
+
+	var worspaceID, err = s.boardRepo.GetWorkspaceIDByColumn(ctx, columnID)
+	if err != nil {
+		return nil, err
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		user,
+		worspaceID,
+		permission.PermCreateTask,
+	)
+
+	if !allowed {
+
+		return nil, errors.New("permission denied")
+	}
+
 	now := time.Now()
 	taskID := primitive.NewObjectID()
 	count, err := s.repo.CountTaskColumns(ctx, columnID)
@@ -85,13 +113,28 @@ func (s *TaskService) ListTasks(ctx context.Context, columnID primitive.ObjectID
 }
 
 func (s *TaskService) DeleteTask(ctx context.Context, taskID, userID primitive.ObjectID) error {
+
 	task, err := s.repo.GetTaskByID(ctx, taskID)
 	if err != nil {
 		return err
 	}
-	if task == nil {
-		return errors.New("task not found")
+	worspaceId, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, task.ColumnID)
+	if err != nil {
+		return err
 	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		worspaceId,
+		permission.PermDeleteTask,
+	)
+
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
+
 	if err := s.repo.DecrementPositionsInRange(ctx, task.ColumnID, task.Position); err != nil {
 		return err
 	}
@@ -117,6 +160,23 @@ func (s *TaskService) DragDropTaskToColumn(
 
 	if task == nil {
 		return errors.New("task not found")
+	}
+
+	worspaceId, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, task.ColumnID)
+	if err != nil {
+		return err
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userID,
+		worspaceId,
+		permission.PermEditTask,
+	)
+
+	if !allowed {
+
+		return errors.New("permission denied")
 	}
 
 	oldPosition := task.Position
@@ -171,6 +231,22 @@ func (s *TaskService) EditTaskDetails(ctx context.Context, payload *EditTaskPayl
 		return errors.New("task not found")
 	}
 
+	worspaceId, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, task.ColumnID)
+	if err != nil {
+		return err
+	}
+
+	allowed := s.permissionChecker.HasPermission(
+		ctx,
+		userid,
+		worspaceId,
+		permission.PermEditTask,
+	)
+
+	if !allowed {
+
+		return errors.New("permission denied")
+	}
 	now := time.Now()
 	assignedMembers := []primitive.ObjectID{}
 	for _, id := range payload.AssignedMembers {
