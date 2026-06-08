@@ -25,6 +25,7 @@ type WorkspaceMember struct {
 	UserID      primitive.ObjectID `bson:"user_id" json:"user_id"`
 
 	Role string `bson:"role" json:"role"`
+	Permissions []string `bson:"permissions"`
 
 	JoinedAt time.Time `bson:"joined_at" json:"joined_at"`
 }
@@ -49,3 +50,4 @@ type WorkspacePayload struct {
 type InviteUserPayload struct {
 	Username string `json:"username"`
 }
+

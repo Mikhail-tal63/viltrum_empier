@@ -202,3 +202,27 @@ func (r *WorkspaceRepo) GetWorkspaceMembers(ctx context.Context, workspaceID pri
 
 	return results, nil
 }
+
+func (r *WorkspaceRepo) GetWorkspaceMember(
+	ctx context.Context,
+	workspaceID,
+	userID primitive.ObjectID,
+) (*WorkspaceMember, error) {
+
+	filter := bson.M{
+		"workspace_id": workspaceID,
+		"user_id":      userID,
+	}
+
+	var member WorkspaceMember
+
+	err := r.memberships.FindOne(ctx, filter).Decode(&member)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &member, nil
+}
