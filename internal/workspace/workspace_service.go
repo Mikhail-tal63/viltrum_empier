@@ -115,7 +115,12 @@ func (s *WorkspaceService) AcceptInvite(ctx context.Context, workspaceID, userID
 func (s *WorkspaceService) GetWorkspacesUsers(ctx context.Context, workspaceID primitive.ObjectID) ([]bson.M, error) {
 	return s.workrepo.GetWorkspaceMembers(ctx, workspaceID)
 }
+func (s *WorkspaceService) ChangeMembersRole(ctx context.Context, workspaceID, userID primitive.ObjectID, role string,
+) error {
+	return s.workrepo.ChangeMembersRole(ctx, workspaceID, userID, role)
+}
 
+// permissios
 func (s *WorkspaceService) HasPermission(
 	ctx context.Context,
 	userID,
