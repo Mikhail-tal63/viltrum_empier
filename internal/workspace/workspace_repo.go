@@ -260,3 +260,21 @@ func (r *WorkspaceRepo) ChangeMembersRole(
 
 	return nil
 }
+
+func (r *WorkspaceRepo) EditUserPermetions(ctx context.Context, workspaceID, userID primitive.ObjectID, payload []string) error {
+	filter := bson.M{"_id": workspaceID,
+		"userID": userID,
+	}
+
+	update := bson.M{
+		"&set": bson.M{
+			"permission": payload,
+		},
+	}
+
+	_, err := r.memberships.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
