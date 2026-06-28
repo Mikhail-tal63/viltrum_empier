@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Mikhail-tal63/viltrum_empier/internal/permission"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -225,26 +226,37 @@ func (r *WorkspaceRepo) GetWorkspaceMembers(ctx context.Context, workspaceID pri
 	return results, nil
 }
 
-func (r *WorkspaceRepo) GetWorkspaceMember(
+func (r *WorkspaceRepo) ChangeMembersRole(
 	ctx context.Context,
-	workspaceID,
-	userID primitive.ObjectID,
-) (*WorkspaceMember, error) {
+	workspaceID, userID primitive.ObjectID,
+	role string,
+) error {
 
 	filter := bson.M{
 		"workspace_id": workspaceID,
 		"user_id":      userID,
 	}
 
-	var member WorkspaceMember
-
-	err := r.memberships.FindOne(ctx, filter).Decode(&member)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, nil
-		}
-		return nil, err
+	permissions, ok := permission.DefaultRolePermissions[role]
+	if !ok {
+		return fmt.Errorf("unknown role: %s", role)
 	}
 
-	return &member, nil
+	update := bson.M{
+		"$set": bson.M{
+			"role":        role,
+			"permissions": permissions,
+		},
+	}
+
+	result, err := r.memberships.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("member not found")
+	}
+
+	return nil
 }

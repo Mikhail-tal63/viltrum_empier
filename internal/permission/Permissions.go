@@ -15,3 +15,37 @@ const (
 
 	PermManageMembers = "manage_members"
 )
+
+var DefaultRolePermissions = map[string][]string{
+	"member": {
+		PermCreateTask,
+		PermEditTask,
+	},
+
+	"leader": {
+		PermCreateTask,
+		PermEditTask,
+		PermDeleteTask,
+
+		PermCreateColumn,
+		PermEditColumn,
+
+		PermEditBoard,
+	},
+
+	"admin": {
+		PermCreateBoard,
+		PermEditBoard,
+		PermDeleteBoard,
+
+		PermCreateColumn,
+		PermEditColumn,
+		PermDeleteColumn,
+
+		PermCreateTask,
+		PermEditTask,
+		PermDeleteTask,
+
+		PermManageMembers,
+	},
+}

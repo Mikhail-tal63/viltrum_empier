@@ -8,7 +8,7 @@ const (
 	PermDeleteColumn = "delete_column"
 
 	PermCreateTask = "create_task"
-	PermEditTask = "edit_task"
+	PermEditTask   = "edit_task"
 	PermDeleteTask = "delete_task"
 
 	PermManageMembers = "manage_members"
