@@ -120,6 +120,10 @@ func (s *WorkspaceService) ChangeMembersRole(ctx context.Context, workspaceID, u
 	return s.workrepo.ChangeMembersRole(ctx, workspaceID, userID, role)
 }
 
+func (s *WorkspaceService) EditUserPermetions(ctx context.Context, workspaceID, userID primitive.ObjectID, payload []string) error{
+	return s.workrepo.EditUserPermetions(ctx,workspaceID,userID,payload)
+}
+
 // permissios
 func (s *WorkspaceService) HasPermission(
 	ctx context.Context,
