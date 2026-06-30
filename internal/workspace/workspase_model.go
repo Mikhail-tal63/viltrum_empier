@@ -50,3 +50,9 @@ type WorkspacePayload struct {
 type InviteUserPayload struct {
 	Username string `json:"username"`
 }
+type ChangeMembersRolePayload struct {
+	Role string `json:"role"`
+}
+type EditUserPermetionspayload struct {
+	Permissions []string `bson:"permissions"`
+}
