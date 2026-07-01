@@ -183,3 +183,66 @@ func (h *WorkspaceHandler) GetWorkspacesUsers(w http.ResponseWriter, r *http.Req
 		return
 	}
 }
+
+func (h *WorkspaceHandler) ChangeMembersRole(w http.ResponseWriter, r *http.Request) {
+	var role ChangeMembersRolePayload
+	if err := json.ParseJSON(r, &role); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	actorID, _ := middleware.GetUserID(r.Context())
+
+	targetID, _ := primitive.ObjectIDFromHex(
+		mux.Vars(r)["user_id"],
+	)
+
+	workspaceID, err := primitive.ObjectIDFromHex(mux.Vars(r)["workspace_id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := h.WorkspaceService.ChangeMembersRole(r.Context(), workspaceID, targetID, actorID, &role); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "role changed seccsessfully",
+	}); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+}
+func (h *WorkspaceHandler) EditUserPermetions(w http.ResponseWriter, r *http.Request) {
+	var permissions EditUserPermetionspayload
+
+	if err := json.ParseJSON(r, &permissions); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	workspceId, err := primitive.ObjectIDFromHex(mux.Vars(r)["workspace_id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	actorID, _ := middleware.GetUserID(r.Context())
+
+	targetID, _ := primitive.ObjectIDFromHex(
+		mux.Vars(r)["user_id"],
+	)
+	if err := h.WorkspaceService.EditUserPermetions(r.Context(), workspceId, targetID, actorID, &permissions); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "permissions changed seccsessfully",
+	}); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+}

@@ -2,8 +2,10 @@ package workspace
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/Mikhail-tal63/viltrum_empier/internal/permission"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -115,7 +117,24 @@ func (s *WorkspaceService) AcceptInvite(ctx context.Context, workspaceID, userID
 func (s *WorkspaceService) GetWorkspacesUsers(ctx context.Context, workspaceID primitive.ObjectID) ([]bson.M, error) {
 	return s.workrepo.GetWorkspaceMembers(ctx, workspaceID)
 }
+func (s *WorkspaceService) ChangeMembersRole(ctx context.Context, workspaceID, userID, actorID primitive.ObjectID, role *ChangeMembersRolePayload,
+) error {
+	allowed := s.HasPermission(ctx, actorID, workspaceID, permission.PermManageRoles)
+	if !allowed {
+		return errors.New("permission denied")
+	}
+	return s.workrepo.ChangeMembersRole(ctx, workspaceID, userID, role.Role)
+}
 
+func (s *WorkspaceService) EditUserPermetions(ctx context.Context, workspaceID, userID, actorID primitive.ObjectID, payload *EditUserPermetionspayload) error {
+	allowed := s.HasPermission(ctx, actorID, workspaceID, permission.PermManageRoles)
+	if !allowed {
+		return errors.New("permission denied")
+	}
+	return s.workrepo.EditUserPermetions(ctx, workspaceID, userID, payload.Permissions)
+}
+
+// permissios*************************************************************************************
 func (s *WorkspaceService) HasPermission(
 	ctx context.Context,
 	userID,

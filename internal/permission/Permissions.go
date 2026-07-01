@@ -14,6 +14,7 @@ const (
 	PermDeleteTask = "delete_task"
 
 	PermManageMembers = "manage_members"
+	PermManageRoles   = "manage_roles"
 )
 
 var DefaultRolePermissions = map[string][]string{
