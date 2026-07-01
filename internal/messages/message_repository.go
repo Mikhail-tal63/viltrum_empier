@@ -65,3 +65,21 @@ func (r *Messagerepo) DeleteMessage(ctx context.Context, msgID primitive.ObjectI
 	}
 	return nil
 }
+
+func (r *Messagerepo) ListMessagesInGroupChat(ctx context.Context, gcID primitive.ObjectID) ([]*Message, error) {
+	filter := bson.M{
+		"groupChatId": gcID,
+	}
+	curser, err := r.msgRepo.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer curser.Close(ctx)
+	messages := []*Message{}
+
+	if err := curser.All(ctx, &messages); err != nil {
+		return nil, err
+	}
+	return messages, nil
+
+}
