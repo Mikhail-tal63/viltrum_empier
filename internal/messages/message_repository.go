@@ -36,3 +36,14 @@ func (r *Messagerepo) DeleteGroupChat(ctx context.Context, gID primitive.ObjectI
 	}
 	return nil
 }
+func (r *Messagerepo) GetGroupChatByEntityID(ctx context.Context, entityId primitive.ObjectID) (*GroupChat, error) {
+	filter := bson.M{
+		"entityId": entityId,
+	}
+	var ch GroupChat
+
+	if err := r.groupRepo.FindOne(ctx, filter).Decode(&ch); err != nil {
+		return nil, err
+	}
+	return &ch, nil
+}
