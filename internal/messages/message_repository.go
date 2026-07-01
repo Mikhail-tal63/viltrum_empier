@@ -47,3 +47,21 @@ func (r *Messagerepo) GetGroupChatByEntityID(ctx context.Context, entityId primi
 	}
 	return &ch, nil
 }
+
+func (r *Messagerepo) CreateMessage(ctx context.Context, message *Message) (*Message, error) {
+	_, err := r.msgRepo.InsertOne(ctx, message)
+	if err != nil {
+		return nil, err
+	}
+	return message, nil
+}
+func (r *Messagerepo) DeleteMessage(ctx context.Context, msgID primitive.ObjectID) error {
+	filter := bson.M{
+		"_id": msgID,
+	}
+	_, err := r.msgRepo.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
