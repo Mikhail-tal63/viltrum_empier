@@ -92,3 +92,11 @@ func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, work
 	}
 	return nil
 }
+
+func (s *MessageService) ListMessagesInGroupChat(ctx context.Context, gID primitive.ObjectID) ([]*Message, error) {
+	messages, err := s.repo.ListMessagesInGroupChat(ctx, gID)
+	if err != nil {
+		return nil, err
+	}
+	return messages, nil
+}
