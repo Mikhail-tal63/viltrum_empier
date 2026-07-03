@@ -2,18 +2,29 @@ package messages
 
 import (
 	"context"
+
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type MessageService struct {
-	repo *Messagerepo
+	repo              *Messagerepo
+	permissionChecker PermissionChecker
 }
 
-func NewMessageService(repo *Messagerepo) *MessageService {
+type PermissionChecker interface {
+	HasPermission(
+		ctx context.Context,
+		userID, workspaceID primitive.ObjectID,
+		PermDeleteBoard string,
+	) bool
+}
+
+func NewMessageService(repo *Messagerepo, permissionChecker PermissionChecker) *MessageService {
 	return &MessageService{
-		repo: repo,
+		repo:              repo,
+		permissionChecker: permissionChecker,
 	}
 }
 
@@ -33,4 +44,35 @@ func (s *MessageService) CreateGroupChat(ctx context.Context, entityType *Create
 		return err, nil
 	}
 	return nil, gc
+}
+
+func (s *MessageService) DeleteGroupChat(ctx context.Context, gID primitive.ObjectID) error {
+
+	if err := s.repo.DeleteGroupChat(ctx, gID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessagePayload, senderId, gID primitive.ObjectID) (*Message, error) {
+	message := &Message{
+		ID: primitive.NewObjectID(),
+
+		GroupChatID: gID,
+
+		SenderID: senderId,
+
+		Content: payload.Content,
+
+		EditedAt: nil,
+		Deleted:  false,
+
+		CreatedAt: time.Now(),
+	}
+
+	_, err := s.repo.CreateMessage(ctx, message)
+	if err != nil {
+		return nil, err
+	}
+	return message, nil
 }
