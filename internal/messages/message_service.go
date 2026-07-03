@@ -2,9 +2,11 @@ package messages
 
 import (
 	"context"
+	"errors"
 
 	"time"
 
+	"github.com/Mikhail-tal63/viltrum_empier/internal/permission"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -75,4 +77,18 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 		return nil, err
 	}
 	return message, nil
+}
+
+func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, workspaceid primitive.ObjectID) error {
+
+	allawed := s.permissionChecker.HasPermission(ctx, deleterID, workspaceid, permission.PermDeleteMessage)
+
+	if !allawed {
+		return errors.New("access denied")
+	}
+
+	if err := s.repo.DeleteMessage(ctx, mID); err != nil {
+		return err
+	}
+	return nil
 }
