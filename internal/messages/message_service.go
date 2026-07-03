@@ -81,10 +81,18 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 
 func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, workspaceid primitive.ObjectID) error {
 
-	allawed := s.permissionChecker.HasPermission(ctx, deleterID, workspaceid, permission.PermDeleteMessage)
+	msg, err := s.repo.GetMessageByID(ctx, mID)
+	if err != nil {
+		return err
+	}
 
-	if !allawed {
-		return errors.New("access denied")
+	if deleterID != msg.SenderID {
+
+		allawed := s.permissionChecker.HasPermission(ctx, deleterID, workspaceid, permission.PermDeleteMessage)
+
+		if !allawed {
+			return errors.New("access denied")
+		}
 	}
 
 	if err := s.repo.DeleteMessage(ctx, mID); err != nil {

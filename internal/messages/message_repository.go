@@ -101,3 +101,13 @@ func (r *Messagerepo) EditMessage(ctx context.Context, msgID primitive.ObjectID,
 	}
 	return nil
 }
+func (r *Messagerepo) GetMessageByID(ctx context.Context, msgID primitive.ObjectID) (*Message, error) {
+	filter := bson.M{"_id": msgID}
+	var msg Message
+	err := r.msgRepo.FindOne(ctx, filter).Decode(&msg)
+	if err != nil {
+
+		return nil, err
+	}
+	return &msg, nil
+}
