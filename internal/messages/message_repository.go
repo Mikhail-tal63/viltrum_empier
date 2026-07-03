@@ -84,14 +84,14 @@ func (r *Messagerepo) ListMessagesInGroupChat(ctx context.Context, gcID primitiv
 
 }
 
-func (r *Messagerepo) EditMessage(ctx context.Context, msgID primitive.ObjectID, payload string) error {
+func (r *Messagerepo) EditMessage(ctx context.Context, msgID primitive.ObjectID, payload *EditMessagePayload) error {
 	filter := bson.M{
 		"_id": msgID,
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			"content": payload,
+			"content": payload.Content,
 		},
 	}
 

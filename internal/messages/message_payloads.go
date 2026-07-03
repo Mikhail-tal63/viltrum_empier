@@ -7,3 +7,7 @@ type CreateGroupChatPayload struct {
 type CreateMessagePayload struct {
 	Content string `json:"content"`
 }
+
+type EditMessagePayload struct {
+	Content string `json:"content"`
+}

@@ -72,11 +72,11 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 		CreatedAt: time.Now(),
 	}
 
-	_, err := s.repo.CreateMessage(ctx, message)
+	msg, err := s.repo.CreateMessage(ctx, message)
 	if err != nil {
 		return nil, err
 	}
-	return message, nil
+	return msg, nil
 }
 
 func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, workspaceid primitive.ObjectID) error {
@@ -99,4 +99,11 @@ func (s *MessageService) ListMessagesInGroupChat(ctx context.Context, gID primit
 		return nil, err
 	}
 	return messages, nil
+}
+
+func (s *MessageService) EditMessage(ctx context.Context, msgID primitive.ObjectID, payload *EditMessagePayload) error {
+	if err := s.repo.EditMessage(ctx, msgID, payload); err != nil {
+		return err
+	}
+	return nil
 }
