@@ -45,3 +45,16 @@ func (s *MessageService) BroadcastMessageDeleted(ctx context.Context, userID, wo
 	}
 	s.messageHup.BroadcastToWorkspace(workspaceID.Hex(), payload)
 }
+
+func (s *MessageService) BroadcastMessageEdited(ctx context.Context, userID, workspaceID primitive.ObjectID, message *Message) {
+	payload, err := websocket.MarshalEvent(websocket.EventMessageUpdated, map[string]any{
+		"message": message,
+		"by":      userID.Hex(),
+	})
+	if err != nil {
+		log.Printf("ws: marshal failed: %v", err)
+		return
+	}
+	s.messageHup.BroadcastToWorkspace(workspaceID.Hex(), payload)
+
+}
