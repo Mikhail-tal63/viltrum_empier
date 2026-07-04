@@ -108,6 +108,7 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 	if err != nil {
 		return nil, err
 	}
+
 	return msg, nil
 
 }

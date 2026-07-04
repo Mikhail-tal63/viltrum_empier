@@ -59,6 +59,7 @@ func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		send:        make(chan []byte, 256),
 		UserID:      userID.Hex(),
 		WorkspaceID: workspaceID,
+		
 	}
 
 	hub.register <- client
@@ -86,19 +87,29 @@ func (c *Client) readPump() {
 		}
 		_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
 
-		var env struct {
-			Type string `json:"type"`
-		}
-		if err := json.Unmarshal(raw, &env); err != nil {
-			continue
-		}
-		if env.Type == "ping" {
-			pong, _ := json.Marshal(map[string]string{"type": "pong"})
-			select {
-			case c.send <- pong:
-			default:
-			}
-		}
+var env struct {
+	Type        string `json:"type"`
+	GroupChatID string `json:"groupChatId"`
+}
+
+if err := json.Unmarshal(raw, &env); err != nil {
+	continue
+}
+
+switch env.Type {
+case "join_group":
+	c.hub.JoinGroupChat(c, env.GroupChatID)
+
+case "leave_group":
+	c.hub.LeaveGroupChat(c, env.GroupChatID)
+
+case "ping":
+	pong, _ := json.Marshal(map[string]string{"type": "pong"})
+	select {
+	case c.send <- pong:
+	default:
+	}
+}
 	}
 }
 
