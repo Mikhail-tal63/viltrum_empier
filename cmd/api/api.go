@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -51,7 +50,7 @@ func (s *APIServer) Run() error {
 
 	workspacerepo := workspace.NewWorkspaceRepo(s.db)
 	workspaceService := workspace.NewWorkspaceService(workspacerepo)
-	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService, userService,messageService)
+	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService, userService)
 	workspaceHandler.WorkspaceRouter(protectedRouter)
 
 	/*boards & colmuns *******************************/
@@ -75,10 +74,10 @@ func (s *APIServer) Run() error {
 	/*messages                                                           **/
 	messagerepo := messages.NewMessageRepository(s.db)
 	messageService := messages.NewMessageService(messagerepo, workspaceService, s.hub, boardRepo)
-	if 1 < 0 {
-		fmt.Println(messageService)
-	}
-	/*websokcet*/
+
+	workspaceService.SetGroupChatCreator(messageService)
+	boardService.SetGroupChatCreator(messageService)
+
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		websocket.ServeWS(s.hub, w, r)
 	})

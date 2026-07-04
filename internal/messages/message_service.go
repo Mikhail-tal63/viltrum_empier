@@ -36,6 +36,24 @@ func NewMessageService(repo *Messagerepo, permissionChecker PermissionChecker, m
 	}
 }
 
+func (s *MessageService) CreateWorkspaceGroupChat(ctx context.Context, workspaceID primitive.ObjectID) error {
+	payload := &CreateGroupChatPayload{EntityType: EntityWorkspace}
+	_, err := s.CreateGroupChat(ctx, payload, workspaceID, primitive.NilObjectID)
+	return err
+}
+
+func (s *MessageService) CreateBoardGroupChat(ctx context.Context, boardID primitive.ObjectID) error {
+	payload := &CreateGroupChatPayload{EntityType: EntityBoard}
+	_, err := s.CreateGroupChat(ctx, payload, boardID, primitive.NilObjectID)
+	return err
+}
+
+func (s *MessageService) CreateColumnGroupChat(ctx context.Context, columnID primitive.ObjectID) error {
+	payload := &CreateGroupChatPayload{EntityType: EntityColumn}
+	_, err := s.CreateGroupChat(ctx, payload, columnID, primitive.NilObjectID)
+	return err
+}
+
 func (s *MessageService) CreateGroupChat(ctx context.Context, entityType *CreateGroupChatPayload, entityID, userID primitive.ObjectID) (*GroupChat, error) {
 
 	groupChat := &GroupChat{
@@ -109,7 +127,7 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 		return nil, err
 	}
 
-    s.BroadcastMessageCreated(ctx,senderId,gID,msg)
+	s.BroadcastMessageCreated(ctx, senderId, gID, msg)
 
 	return msg, nil
 
@@ -121,7 +139,7 @@ func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, work
 	if err != nil {
 		return err
 	}
-    gID:= msg.GroupChatID
+	gID := msg.GroupChatID
 	if deleterID != msg.SenderID {
 
 		allawed := s.permissionChecker.HasPermission(ctx, deleterID, workspaceid, permission.PermDeleteMessage)
@@ -134,7 +152,7 @@ func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, work
 	if err := s.repo.DeleteMessage(ctx, mID); err != nil {
 		return err
 	}
-	s.BroadcastMessageDeleted(ctx,deleterID,gID,mID)
+	s.BroadcastMessageDeleted(ctx, deleterID, gID, mID)
 	return nil
 }
 
@@ -147,16 +165,16 @@ func (s *MessageService) ListMessagesInGroupChat(ctx context.Context, gID primit
 }
 
 func (s *MessageService) EditMessage(ctx context.Context, msgID primitive.ObjectID, payload *EditMessagePayload) error {
-	
+
 	if err := s.repo.EditMessage(ctx, msgID, payload); err != nil {
 		return err
 	}
-    message,err := s.repo.GetMessageByID(ctx,msgID)
+	message, err := s.repo.GetMessageByID(ctx, msgID)
 	if err != nil {
 		return err
 	}
 	gID := message.GroupChatID
 	userid := message.SenderID
-	s.BroadcastMessageEdited(ctx,userid,gID,message)
+	s.BroadcastMessageEdited(ctx, userid, gID, message)
 	return nil
 }

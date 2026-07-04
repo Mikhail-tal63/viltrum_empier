@@ -18,7 +18,14 @@ type BoardService struct {
 	boardHub          *websocket.Hub
 	taskDeleter       TaskDeleter
 	permissionChecker PermissionChecker
+	groupChatCreator  GroupChatCreator
 }
+
+type GroupChatCreator interface {
+	CreateBoardGroupChat(ctx context.Context, boardID primitive.ObjectID) error
+	CreateColumnGroupChat(ctx context.Context, columnID primitive.ObjectID) error
+}
+
 type TaskDeleter interface {
 	DeleteColumnTasks(
 		ctx context.Context,
@@ -40,6 +47,10 @@ func NewBoardService(repo *BoardRepository, boardHub *websocket.Hub, taskDeleter
 		taskDeleter:       taskDeleter,
 		permissionChecker: permissionChecker,
 	}
+}
+
+func (s *BoardService) SetGroupChatCreator(gc GroupChatCreator) {
+	s.groupChatCreator = gc
 }
 
 func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayload, userID, workspaceId primitive.ObjectID) (*Board, error) {
@@ -65,6 +76,12 @@ func (s *BoardService) CreateBoard(ctx context.Context, payload *CreateBoardPayl
 	createdBoard, err := s.repo.CreateBoard(ctx, board)
 	if err != nil {
 		return nil, err
+	}
+
+	if s.groupChatCreator != nil {
+		if err := s.groupChatCreator.CreateBoardGroupChat(ctx, boardID); err != nil {
+			return nil, err
+		}
 	}
 
 	s.BroadcastBoardCreated(userID, createdBoard)
@@ -206,9 +223,14 @@ func (s *BoardService) CreateColmun(ctx context.Context, boardID, userid primiti
 		return nil, err
 	}
 
+	if s.groupChatCreator != nil {
+		if err := s.groupChatCreator.CreateColumnGroupChat(ctx, colmunID); err != nil {
+			return nil, err
+		}
+	}
+
 	s.BroadcastColumnCreated(ctx, userid, colmun)
 	return colmun, nil
-
 }
 
 func (s *BoardService) GetBoarderColumns(ctx context.Context, workspaceID primitive.ObjectID) ([]*Column, error) {
