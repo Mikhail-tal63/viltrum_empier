@@ -74,7 +74,7 @@ func (s *APIServer) Run() error {
 
 	/*messages                                                           **/
 	messagerepo := messages.NewMessageRepository(s.db)
-	messageService := messages.NewMessageService(messagerepo, workspaceService)
+	messageService := messages.NewMessageService(messagerepo, workspaceService, s.hub)
 	if 1 < 0 {
 		fmt.Println(messageService)
 	}

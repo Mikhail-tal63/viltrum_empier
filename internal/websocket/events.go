@@ -18,4 +18,8 @@ const (
 	EventMessageCreated = "message_created"
 	EventMessageUpdated = "message_updated"
 	EventMessageDeleted = "message_deleted"
+
+	EventGroupCreated = "group_created"
+	EventGroupDeleted = "group_deleted"
+	EventGroupEdited  = "group_edited"
 )

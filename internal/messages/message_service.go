@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/permission"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type MessageService struct {
 	repo              *Messagerepo
 	permissionChecker PermissionChecker
+	messageHup        *websocket.Hub
 }
 
 type PermissionChecker interface {
@@ -23,10 +25,11 @@ type PermissionChecker interface {
 	) bool
 }
 
-func NewMessageService(repo *Messagerepo, permissionChecker PermissionChecker) *MessageService {
+func NewMessageService(repo *Messagerepo, permissionChecker PermissionChecker, message *websocket.Hub) *MessageService {
 	return &MessageService{
 		repo:              repo,
 		permissionChecker: permissionChecker,
+		messageHup:        message,
 	}
 }
 
