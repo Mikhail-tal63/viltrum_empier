@@ -23,7 +23,7 @@ func (s *MessageService) BroadcastCreateGroupChat(ctx context.Context, userID, w
 
 }
 
-func (s *MessageService) BroadcastMessageCreated(ctx context.Context, userID, workspaceID primitive.ObjectID, message *Message) {
+func (s *MessageService) BroadcastMessageCreated(ctx context.Context, userID, gcID primitive.ObjectID, message *Message) {
 	payload, err := websocket.MarshalEvent(websocket.EventMessageCreated, map[string]any{
 		"message": message,
 		"by":      userID.Hex(),
@@ -32,21 +32,22 @@ func (s *MessageService) BroadcastMessageCreated(ctx context.Context, userID, wo
 		log.Printf("ws: marshal failed: %v", err)
 		return
 	}
-	s.messageHup.BroadcastToWorkspace(workspaceID.Hex(), payload)
+	s.messageHup.BroadcastToGroupChat(gcID.Hex(), payload)
 
 }
-func (s *MessageService) BroadcastMessageDeleted(ctx context.Context, userID, workspaceID primitive.ObjectID) {
+func (s *MessageService) BroadcastMessageDeleted(ctx context.Context, userID, gcID  ,  messageID primitive.ObjectID,) {
 	payload, err := websocket.MarshalEvent(websocket.EventMessageDeleted, map[string]any{
-		"by": userID.Hex(),
-	})
+    "messageId": messageID.Hex(),
+    "by":        userID.Hex(),
+})
 	if err != nil {
 		log.Printf("ws: marshal failed: %v", err)
 		return
 	}
-	s.messageHup.BroadcastToWorkspace(workspaceID.Hex(), payload)
+	s.messageHup.BroadcastToGroupChat(gcID.Hex(), payload)
 }
 
-func (s *MessageService) BroadcastMessageEdited(ctx context.Context, userID, workspaceID primitive.ObjectID, message *Message) {
+func (s *MessageService) BroadcastMessageEdited(ctx context.Context, userID, gcID primitive.ObjectID, message *Message) {
 	payload, err := websocket.MarshalEvent(websocket.EventMessageUpdated, map[string]any{
 		"message": message,
 		"by":      userID.Hex(),
@@ -55,6 +56,6 @@ func (s *MessageService) BroadcastMessageEdited(ctx context.Context, userID, wor
 		log.Printf("ws: marshal failed: %v", err)
 		return
 	}
-	s.messageHup.BroadcastToWorkspace(workspaceID.Hex(), payload)
+	s.messageHup.BroadcastToGroupChat(gcID.Hex(), payload)
 
 }
