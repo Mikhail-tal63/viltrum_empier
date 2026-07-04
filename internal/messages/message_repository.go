@@ -2,6 +2,7 @@ package messages
 
 import (
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -88,10 +89,11 @@ func (r *Messagerepo) EditMessage(ctx context.Context, msgID primitive.ObjectID,
 	filter := bson.M{
 		"_id": msgID,
 	}
-
+	now := time.Now()
 	update := bson.M{
 		"$set": bson.M{
 			"content": payload.Content,
+			"editedAt": &now,
 		},
 	}
 

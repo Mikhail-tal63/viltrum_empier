@@ -51,7 +51,7 @@ func (s *APIServer) Run() error {
 
 	workspacerepo := workspace.NewWorkspaceRepo(s.db)
 	workspaceService := workspace.NewWorkspaceService(workspacerepo)
-	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService, userService)
+	workspaceHandler := workspace.NewWorkspaceHandler(workspaceService, userService,messageService)
 	workspaceHandler.WorkspaceRouter(protectedRouter)
 
 	/*boards & colmuns *******************************/

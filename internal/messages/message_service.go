@@ -109,6 +109,8 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 		return nil, err
 	}
 
+    s.BroadcastMessageCreated(ctx,senderId,gID,msg)
+
 	return msg, nil
 
 }
@@ -119,7 +121,7 @@ func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, work
 	if err != nil {
 		return err
 	}
-
+    gID:= msg.GroupChatID
 	if deleterID != msg.SenderID {
 
 		allawed := s.permissionChecker.HasPermission(ctx, deleterID, workspaceid, permission.PermDeleteMessage)
@@ -132,6 +134,7 @@ func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, work
 	if err := s.repo.DeleteMessage(ctx, mID); err != nil {
 		return err
 	}
+	s.BroadcastMessageDeleted(ctx,deleterID,gID,mID)
 	return nil
 }
 
@@ -144,8 +147,16 @@ func (s *MessageService) ListMessagesInGroupChat(ctx context.Context, gID primit
 }
 
 func (s *MessageService) EditMessage(ctx context.Context, msgID primitive.ObjectID, payload *EditMessagePayload) error {
+	
 	if err := s.repo.EditMessage(ctx, msgID, payload); err != nil {
 		return err
 	}
+    message,err := s.repo.GetMessageByID(ctx,msgID)
+	if err != nil {
+		return err
+	}
+	gID := message.GroupChatID
+	userid := message.SenderID
+	s.BroadcastMessageEdited(ctx,userid,gID,message)
 	return nil
 }
