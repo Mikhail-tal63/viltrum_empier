@@ -6,6 +6,7 @@ import (
 
 	"time"
 
+	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/permission"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,6 +16,7 @@ type MessageService struct {
 	repo              *Messagerepo
 	permissionChecker PermissionChecker
 	messageHup        *websocket.Hub
+	boardRepo         *board.BoardRepository
 }
 
 type PermissionChecker interface {
@@ -25,15 +27,16 @@ type PermissionChecker interface {
 	) bool
 }
 
-func NewMessageService(repo *Messagerepo, permissionChecker PermissionChecker, message *websocket.Hub) *MessageService {
+func NewMessageService(repo *Messagerepo, permissionChecker PermissionChecker, message *websocket.Hub, boardRepo *board.BoardRepository) *MessageService {
 	return &MessageService{
 		repo:              repo,
 		permissionChecker: permissionChecker,
 		messageHup:        message,
+		boardRepo:         boardRepo,
 	}
 }
 
-func (s *MessageService) CreateGroupChat(ctx context.Context, entityType *CreateGroupChatPayload, entityID primitive.ObjectID) (*GroupChat, error) {
+func (s *MessageService) CreateGroupChat(ctx context.Context, entityType *CreateGroupChatPayload, entityID, userID primitive.ObjectID) (*GroupChat, error) {
 
 	groupChat := &GroupChat{
 		ID:         primitive.NewObjectID(),
@@ -46,9 +49,35 @@ func (s *MessageService) CreateGroupChat(ctx context.Context, entityType *Create
 
 	gc, err := s.repo.CreateGroupChat(ctx, groupChat)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
-	return nil, gc
+
+	var workspaceID primitive.ObjectID
+
+	switch entityType.EntityType {
+	case EntityWorkspace:
+		workspaceID = entityID
+
+	case EntityBoard:
+		board, err := s.boardRepo.GetBoardByID(ctx, entityID)
+		if err != nil {
+			return nil, err
+		}
+		workspaceID = board.WorkspaceID
+
+	case EntityColumn:
+		id, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, entityID)
+		if err != nil {
+			return nil, err
+		}
+		workspaceID = id
+	default:
+		return nil, errors.New("invalid entity type")
+	}
+
+	s.BroadcastCreateGroupChat(ctx, userID, workspaceID, gc)
+
+	return gc, nil
 }
 
 func (s *MessageService) DeleteGroupChat(ctx context.Context, gID primitive.ObjectID) error {
@@ -80,6 +109,7 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 		return nil, err
 	}
 	return msg, nil
+
 }
 
 func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, workspaceid primitive.ObjectID) error {

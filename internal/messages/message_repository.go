@@ -20,12 +20,12 @@ func NewMessageRepository(db *mongo.Database) *Messagerepo {
 	}
 }
 
-func (r *Messagerepo) CreateGroupChat(ctx context.Context, Group *GroupChat) (error, *GroupChat) {
+func (r *Messagerepo) CreateGroupChat(ctx context.Context, Group *GroupChat) (*GroupChat, error) {
 	_, err := r.groupRepo.InsertOne(ctx, Group)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
-	return nil, Group
+	return Group, nil
 }
 func (r *Messagerepo) DeleteGroupChat(ctx context.Context, gID primitive.ObjectID) error {
 	filter := bson.M{"_id": gID}
