@@ -133,16 +133,47 @@ func (s *MessageService) CreateMessage(ctx context.Context, payload *CreateMessa
 
 }
 
-func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID, workspaceid primitive.ObjectID) error {
+func (s *MessageService) DeleteMessage(ctx context.Context, mID, deleterID primitive.ObjectID) error {
+
+
 
 	msg, err := s.repo.GetMessageByID(ctx, mID)
 	if err != nil {
 		return err
 	}
+
+
+
 	gID := msg.GroupChatID
+
+	gc,err:= s.repo.GetGroupChatByID(ctx,gID)
+	
+	var workspaceID primitive.ObjectID
+
+	switch gc.EntityType {
+	case EntityWorkspace:
+		workspaceID = gc.EntityID
+
+	case EntityBoard:
+		board, err := s.boardRepo.GetBoardByID(ctx, gc.EntityID)
+		if err != nil {
+			return  err
+		}
+		workspaceID = board.WorkspaceID
+
+	case EntityColumn:
+		id, err := s.boardRepo.GetWorkspaceIDByColumn(ctx, gc.EntityID)
+		if err != nil {
+			return err
+		}
+		workspaceID = id
+	default:
+		return errors.New("invalid entity type")
+	}
+
 	if deleterID != msg.SenderID {
 
-		allawed := s.permissionChecker.HasPermission(ctx, deleterID, workspaceid, permission.PermDeleteMessage)
+		allawed := s.permissionChecker.HasPermission(ctx, deleterID, workspaceID, permission.PermDeleteMessage)
 
 		if !allawed {
 			return errors.New("access denied")

@@ -22,6 +22,7 @@ func NewMessageHandler(service *MessageService)*MessageHanler{
 func (h *MessageHanler)MessageRouter(router *mux.Router){
 router.HandleFunc("/group-chat/{groupChatId}/messages",h.ListMessagesInGroupChat).Methods("GET")
 router.HandleFunc("/group-chat/{groupChatId}/message",h.CreateMessage).Methods("POST")
+
 }
 
 func (h *MessageHanler) ListMessagesInGroupChat(w http.ResponseWriter,r *http.Request){
@@ -72,3 +73,4 @@ func (h *MessageHanler) CreateMessage(w http.ResponseWriter,r *http.Request){
 		return
 	}
 }
+

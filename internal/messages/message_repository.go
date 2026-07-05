@@ -49,6 +49,18 @@ func (r *Messagerepo) GetGroupChatByEntityID(ctx context.Context, entityId primi
 	return &ch, nil
 }
 
+func (r *Messagerepo) GetGroupChatByID(ctx context.Context, gID primitive.ObjectID) (*GroupChat, error) {
+	filter := bson.M{
+		"_id": gID,
+	}
+	var ch GroupChat
+
+	if err := r.groupRepo.FindOne(ctx, filter).Decode(&ch); err != nil {
+		return nil, err
+	}
+	return &ch, nil
+}
+
 func (r *Messagerepo) CreateMessage(ctx context.Context, message *Message) (*Message, error) {
 	_, err := r.msgRepo.InsertOne(ctx, message)
 	if err != nil {
