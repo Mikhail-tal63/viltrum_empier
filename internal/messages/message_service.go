@@ -195,7 +195,7 @@ func (s *MessageService) ListMessagesInGroupChat(ctx context.Context, gID primit
 	return messages, nil
 }
 
-func (s *MessageService) EditMessage(ctx context.Context, msgID primitive.ObjectID, payload *EditMessagePayload) error {
+func (s *MessageService) EditMessage(ctx context.Context, msgID,userID primitive.ObjectID, payload *EditMessagePayload) error {
 
 	if err := s.repo.EditMessage(ctx, msgID, payload); err != nil {
 		return err
@@ -206,6 +206,9 @@ func (s *MessageService) EditMessage(ctx context.Context, msgID primitive.Object
 	}
 	gID := message.GroupChatID
 	userid := message.SenderID
+	if userID!= userid{
+		return errors.New("access denied")
+	}
 	s.BroadcastMessageEdited(ctx, userid, gID, message)
 	return nil
 }

@@ -22,14 +22,15 @@ func NewMessageHandler(service *MessageService) *MessageHanler {
 func (h *MessageHanler) MessageRouter(router *mux.Router) {
 	router.HandleFunc("/group-chat/{groupChatId}/messages", h.ListMessagesInGroupChat).Methods("GET")
 	router.HandleFunc("/group-chat/{groupChatId}/message", h.CreateMessage).Methods("POST")
-
+    router.HandleFunc("/message/{id}",h.DeleteMessage).Methods("DELETE")
+	router.HandleFunc("/message/{id}",h.EditMessage).Methods("PATCH")
 }
 
 func (h *MessageHanler) ListMessagesInGroupChat(w http.ResponseWriter, r *http.Request) {
 
 	gID, err := primitive.ObjectIDFromHex(mux.Vars(r)["groupChatId"])
 	if err != nil {
-		json.WriteError(w, http.StatusInternalServerError, err)
+		json.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	messages, err := h.service.ListMessagesInGroupChat(r.Context(), gID)
@@ -46,7 +47,7 @@ func (h *MessageHanler) ListMessagesInGroupChat(w http.ResponseWriter, r *http.R
 func (h *MessageHanler) CreateMessage(w http.ResponseWriter, r *http.Request) {
 	var payload CreateMessagePayload
 	if err := json.ParseJSON(r, &payload); err != nil {
-		json.WriteError(w, http.StatusInternalServerError, err)
+		json.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	userid, err := middleware.GetUserID(r.Context())
@@ -56,7 +57,7 @@ func (h *MessageHanler) CreateMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	gID, err := primitive.ObjectIDFromHex(mux.Vars(r)["groupChatId"])
 	if err != nil {
-		json.WriteError(w, http.StatusInternalServerError, err)
+		json.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	msg, err := h.service.CreateMessage(r.Context(), &payload, userid, gID)
@@ -64,7 +65,7 @@ func (h *MessageHanler) CreateMessage(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	if err := json.WriteJSON(w, http.StatusOK, msg); err != nil {
+	if err := json.WriteJSON(w, http.StatusCreated, msg); err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -78,7 +79,7 @@ func (h *MessageHanler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	message, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
 	if err != nil {
-		json.WriteError(w, http.StatusInternalServerError, err)
+		json.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	if err := h.service.DeleteMessage(r.Context(), message, userid); err != nil {
@@ -92,4 +93,36 @@ func (h *MessageHanler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+}
+
+func (h *MessageHanler) EditMessage(w http.ResponseWriter,r *http.Request){
+
+	var payload EditMessagePayload
+ 
+	if err := json.ParseJSON(r,&payload);err != nil {
+	
+			json.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	userid, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	msgid,err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w,http.StatusBadRequest,err)
+		return
+	}
+	if err := h.service.EditMessage(r.Context(),msgid,userid,&payload);err != nil {
+	
+		json.WriteError(w,http.StatusInternalServerError,err)
+		return
+	}
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+    "message": "message edited successfully",
+}); err != nil {
+    json.WriteError(w, http.StatusInternalServerError, err)
+    return
+}
 }
