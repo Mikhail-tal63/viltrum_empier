@@ -13,6 +13,9 @@ const (
 	PermEditTask   = "edit_task"
 	PermDeleteTask = "delete_task"
 
+	PermCreateMessage = "create_message"
+	PermDeleteMessage = "delete_message"
+
 	PermManageMembers = "manage_members"
 	PermManageRoles   = "manage_roles"
 )

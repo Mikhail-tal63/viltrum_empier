@@ -10,14 +10,23 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type GroupChatCreator interface {
+	CreateWorkspaceGroupChat(ctx context.Context, workspaceID primitive.ObjectID) error
+}
+
 type WorkspaceService struct {
-	workrepo *WorkspaceRepo
+	workrepo         *WorkspaceRepo
+	groupChatCreator GroupChatCreator
 }
 
 func NewWorkspaceService(workrepo *WorkspaceRepo) *WorkspaceService {
 	return &WorkspaceService{
 		workrepo: workrepo,
 	}
+}
+
+func (s *WorkspaceService) SetGroupChatCreator(gc GroupChatCreator) {
+	s.groupChatCreator = gc
 }
 
 func (s *WorkspaceService) CreateWorkspace(ctx context.Context, payload *WorkspacePayload, userID primitive.ObjectID) (*Workspace, error) {
@@ -51,6 +60,12 @@ func (s *WorkspaceService) CreateWorkspace(ctx context.Context, payload *Workspa
 	_, err = s.workrepo.CreateWorkspaceMember(ownerMember)
 	if err != nil {
 		return nil, err
+	}
+
+	if s.groupChatCreator != nil {
+		if err := s.groupChatCreator.CreateWorkspaceGroupChat(ctx, workspaceID); err != nil {
+			return nil, err
+		}
 	}
 
 	return createdWorkspace, nil

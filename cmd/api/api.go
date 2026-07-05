@@ -6,6 +6,7 @@ import (
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/auth"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/board"
+	"github.com/Mikhail-tal63/viltrum_empier/internal/messages"
 
 	"github.com/Mikhail-tal63/viltrum_empier/internal/task"
 	"github.com/Mikhail-tal63/viltrum_empier/internal/websocket"
@@ -70,7 +71,13 @@ func (s *APIServer) Run() error {
 
 	log.Println("listening on ", s.addr)
 
-	/*websokcet*/
+	/*messages                                                           **/
+	messagerepo := messages.NewMessageRepository(s.db)
+	messageService := messages.NewMessageService(messagerepo, workspaceService, s.hub, boardRepo)
+
+	workspaceService.SetGroupChatCreator(messageService)
+	boardService.SetGroupChatCreator(messageService)
+
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		websocket.ServeWS(s.hub, w, r)
 	})
