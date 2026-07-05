@@ -9,68 +9,87 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type MessageHanler struct{
+type MessageHanler struct {
 	service *MessageService
 }
 
-func NewMessageHandler(service *MessageService)*MessageHanler{
+func NewMessageHandler(service *MessageService) *MessageHanler {
 	return &MessageHanler{
 		service: service,
 	}
 }
 
-func (h *MessageHanler)MessageRouter(router *mux.Router){
-router.HandleFunc("/group-chat/{groupChatId}/messages",h.ListMessagesInGroupChat).Methods("GET")
-router.HandleFunc("/group-chat/{groupChatId}/message",h.CreateMessage).Methods("POST")
+func (h *MessageHanler) MessageRouter(router *mux.Router) {
+	router.HandleFunc("/group-chat/{groupChatId}/messages", h.ListMessagesInGroupChat).Methods("GET")
+	router.HandleFunc("/group-chat/{groupChatId}/message", h.CreateMessage).Methods("POST")
 
 }
 
-func (h *MessageHanler) ListMessagesInGroupChat(w http.ResponseWriter,r *http.Request){
-	
-	gID,err := primitive.ObjectIDFromHex(mux.Vars(r)["groupChatId"])
+func (h *MessageHanler) ListMessagesInGroupChat(w http.ResponseWriter, r *http.Request) {
+
+	gID, err := primitive.ObjectIDFromHex(mux.Vars(r)["groupChatId"])
 	if err != nil {
-		json.WriteError(w,http.StatusInternalServerError,err)
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	messages, err := h.service.ListMessagesInGroupChat(r.Context(),gID)
-if err != nil {
-		json.WriteError(w,http.StatusInternalServerError,err)
+	messages, err := h.service.ListMessagesInGroupChat(r.Context(), gID)
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
-}
-if err := json.WriteJSON(w,http.StatusOK,messages)
-err != nil {
-		json.WriteError(w,http.StatusInternalServerError,err)
+	}
+	if err := json.WriteJSON(w, http.StatusOK, messages); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
-}
+	}
 }
 
-
-func (h *MessageHanler) CreateMessage(w http.ResponseWriter,r *http.Request){
+func (h *MessageHanler) CreateMessage(w http.ResponseWriter, r *http.Request) {
 	var payload CreateMessagePayload
-	if err := json.ParseJSON(r,&payload)
-	err != nil {
-		json.WriteError(w,http.StatusInternalServerError,err)
+	if err := json.ParseJSON(r, &payload); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	userid ,err := middleware.GetUserID(r.Context())
+	userid, err := middleware.GetUserID(r.Context())
 	if err != nil {
-		json.WriteError(w,http.StatusInternalServerError,err)
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	gID,err := primitive.ObjectIDFromHex(mux.Vars(r)["groupChatId"])
+	gID, err := primitive.ObjectIDFromHex(mux.Vars(r)["groupChatId"])
 	if err != nil {
-		json.WriteError(w,http.StatusInternalServerError,err)
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	msg ,err := h.service.CreateMessage(r.Context(),&payload,userid,gID)
+	msg, err := h.service.CreateMessage(r.Context(), &payload, userid, gID)
 	if err != nil {
-		json.WriteError(w,http.StatusInternalServerError,err)
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	if err := json.WriteJSON(w,http.StatusOK,msg)
-	err != nil {
-	json.WriteError(w,http.StatusInternalServerError,err)
+	if err := json.WriteJSON(w, http.StatusOK, msg); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 }
 
+func (h *MessageHanler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
+	userid, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	message, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := h.service.DeleteMessage(r.Context(), message, userid); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := json.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "message deleted seccsessfuly",
+	},
+	); err != nil {
+		json.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
